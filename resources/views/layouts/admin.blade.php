@@ -22,7 +22,22 @@
         <div class="page d-flex flex-row flex-column-fluid">
             @include('layouts.partials.sidebar')
             <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
-                @include('layouts.partials.topbar')
+            @include('layouts.partials.topbar')
+                <!--begin::Toolbar-->
+                <div class="toolbar" id="kt_toolbar">
+                    <div class="container-fluid d-flex flex-stack py-3">
+                        <div class="d-flex align-items-center flex-wrap me-3">
+                            <h1 class="text-dark fw-bold fs-3 my-1 me-5">@yield('page_title', 'Dashboard')</h1>
+                            <div class="text-muted fs-7">
+                                @yield('page_breadcrumbs')
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 my-1">
+                            @yield('page_actions')
+                        </div>
+                    </div>
+                </div>
+                <!--end::Toolbar-->
                 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
                     @yield('content')
                 </div>

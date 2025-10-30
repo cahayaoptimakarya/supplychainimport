@@ -2,21 +2,21 @@
 
 @section('title', 'Edit Kategori')
 
+@section('page_title', 'Edit Kategori')
+
+@section('page_breadcrumbs')
+    <span class="text-muted">Home</span>
+    <span class="mx-2">-</span>
+    <span class="text-muted">Masterdata</span>
+    <span class="mx-2">-</span>
+    <span class="text-muted">Kategori</span>
+    <span class="mx-2">-</span>
+    <span class="text-dark">Edit</span>
+@endsection
+
 @section('content')
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="container-fluid" id="kt_content_container">
-        <div class="d-flex flex-wrap flex-stack mb-5">
-            <div class="page-title d-flex flex-column">
-                <h1 class="d-flex text-dark fw-bold fs-3 mb-0">Edit Kategori</h1>
-                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-1">
-                    <li class="breadcrumb-item text-muted"><a href="{{ route('admin.masterdata.items.index') }}" class="text-muted text-hover-primary">Masterdata</a></li>
-                    <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
-                    <li class="breadcrumb-item text-muted"><a href="{{ route('admin.masterdata.categories.index') }}" class="text-muted text-hover-primary">Kategori</a></li>
-                    <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
-                    <li class="breadcrumb-item text-dark">Edit</li>
-                </ul>
-            </div>
-        </div>
         <div class="card">
             <div class="card-header border-0 pt-6">
                 <div class="card-title">

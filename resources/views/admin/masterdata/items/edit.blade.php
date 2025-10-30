@@ -2,21 +2,21 @@
 
 @section('title', 'Edit Item')
 
+@section('page_title', 'Edit Item')
+
+@section('page_breadcrumbs')
+    <span class="text-muted">Home</span>
+    <span class="mx-2">-</span>
+    <span class="text-muted">Masterdata</span>
+    <span class="mx-2">-</span>
+    <span class="text-muted">Items</span>
+    <span class="mx-2">-</span>
+    <span class="text-dark">Edit</span>
+@endsection
+
 @section('content')
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="container-fluid" id="kt_content_container">
-        <div class="d-flex flex-wrap flex-stack mb-5">
-            <div class="page-title d-flex flex-column">
-                <h1 class="d-flex text-dark fw-bold fs-3 mb-0">Edit Item</h1>
-                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-1">
-                    <li class="breadcrumb-item text-muted"><a href="{{ route('admin.masterdata.items.index') }}" class="text-muted text-hover-primary">Masterdata</a></li>
-                    <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
-                    <li class="breadcrumb-item text-muted"><a href="{{ route('admin.masterdata.items.index') }}" class="text-muted text-hover-primary">Items</a></li>
-                    <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
-                    <li class="breadcrumb-item text-dark">Edit</li>
-                </ul>
-            </div>
-        </div>
         <div class="card">
             <div class="card-header border-0 pt-6">
                 <div class="card-title">
@@ -55,6 +55,23 @@
                             @endforeach
                         </select>
                         @error('category_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-10">
+                        <label class="form-label required">UOM</label>
+                        <select name="uom_id" class="form-select @error('uom_id') is-invalid @enderror" required data-control="select2" data-placeholder="Pilih UOM">
+                            <option value="">Pilih UOM</option>
+                            @foreach($uoms as $uom)
+                                <option value="{{ $uom->id }}" @selected(old('uom_id', $item->uom_id) == $uom->id)>{{ $uom->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('uom_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-10">
+                        <label class="form-label">Deskripsi</label>
+                        <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="3" placeholder="Deskripsi item (opsional)">{{ old('description', $item->description) }}</textarea>
+                        @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="d-flex justify-content-end">

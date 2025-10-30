@@ -44,7 +44,10 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->as('admin.')->group(fu
         Route::get('/categories/data', [CategoryController::class, 'data'])->name('categories.data');
         // Categories CRUD
         Route::resource('categories', CategoryController::class)->except(['show'])->names('categories');
-        Route::get('/uom', [UomController::class, 'index'])->name('uom.index');
+        // UOM DataTables AJAX endpoint
+        Route::get('/uom/data', [UomController::class, 'data'])->name('uom.data');
+        // UOM CRUD
+        Route::resource('uom', UomController::class)->except(['show'])->names('uom');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     });
 });

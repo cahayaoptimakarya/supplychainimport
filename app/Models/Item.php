@@ -13,11 +13,18 @@ class Item extends Model
         'name',
         'sku',
         'cnt',
+        'description',
         'category_id',
+        'uom_id',
     ];
 
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function uom()
+    {
+        return $this->belongsTo(Uom::class);
     }
 }

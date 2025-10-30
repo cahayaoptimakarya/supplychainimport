@@ -13,6 +13,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('sku')->unique();
             $table->string('cnt')->comment("koli")->nullable();
+            $table->foreignId('uom_id')->constrained('uoms')->cascadeOnUpdate()->restrictOnDelete();
+            $table->text('description')->nullable();
             $table->foreignId('category_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->timestamps();
         });
