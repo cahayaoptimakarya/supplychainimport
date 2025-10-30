@@ -11,19 +11,22 @@
             </div>
         </div>
         <div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
-            <a href="{{ url('/') }}" class="d-lg-none">
-                <img alt="Logo" src="{{ asset('metronic/media/logos/logo-2.svg') }}" class="h-30px" />
+            <a href="{{ route('admin.dashboard') }}" class="d-lg-none text-decoration-none">
+                <span class="fw-bold">Import Analytics</span>
             </a>
         </div>
         <div class="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
             <div class="d-flex align-items-stretch" id="kt_header_nav">
-                <div class="header-menu align-items-stretch d-none d-lg-flex">
-                    <div class="menu menu-lg-row fw-bold align-items-stretch" data-kt-menu="true">
-                        <div class="menu-item me-lg-1">
-                            <a class="menu-link py-3" href="{{ url('/dashboard') }}">
-                                <span class="menu-title">Dashboard</span>
-                            </a>
-                        </div>
+                <!-- Global Search with icon -->
+                <div class="d-none d-lg-flex align-items-center ms-3">
+                    <div class="position-relative">
+                        <span class="svg-icon svg-icon-2 position-absolute top-50 translate-middle-y ms-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="black"/>
+                                <path d="M11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11C19 15.4183 15.4183 19 11 19ZM11 5C7.68629 5 5 7.68629 5 11C5 14.3137 7.68629 17 11 17C14.3137 17 17 14.3137 17 11C17 7.68629 14.3137 5 11 5Z" fill="black"/>
+                            </svg>
+                        </span>
+                        <input id="global_search" type="text" class="form-control form-control-solid ps-12 w-300px" placeholder="Search..." />
                     </div>
                 </div>
             </div>

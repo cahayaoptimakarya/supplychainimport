@@ -4,7 +4,7 @@
     <base href="">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@yield('title', 'Admin')</title>
+    <title>@yield('title', 'Import Analytics')</title>
     <link rel="shortcut icon" href="{{ asset('metronic/media/logos/favicon.ico') }}" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
     <link href="{{ asset('metronic/plugins/custom/fullcalendar/fullcalendar.bundle.css') }}" rel="stylesheet" type="text/css" />
@@ -12,8 +12,8 @@
     <link href="{{ asset('metronic/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
     @stack('styles')
     @yield('styles')
-    <meta name="description" content="Admin dashboard" />
-    <meta name="keywords" content="admin,dashboard,metronic" />
+    <meta name="description" content="Import Analytics dashboard" />
+    <meta name="keywords" content="import analytics,dashboard,analytics" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="website" />
 </head>
@@ -42,4 +42,3 @@
     @yield('scripts')
 </body>
 </html>
-

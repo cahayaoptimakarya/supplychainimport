@@ -1,17 +1,17 @@
 @extends('layouts.admin')
 
-@section('title', 'Masterdata - Items')
+@section('title', 'Masterdata - Kategori')
 
 @section('content')
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="container-fluid" id="kt_content_container">
         <div class="d-flex flex-wrap flex-stack mb-5">
             <div class="page-title d-flex flex-column">
-                <h1 class="d-flex text-dark fw-bold fs-3 mb-0">Items</h1>
+                <h1 class="d-flex text-dark fw-bold fs-3 mb-0">Kategori Item</h1>
                 <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-1">
                     <li class="breadcrumb-item text-muted"><a href="{{ route('admin.masterdata.items.index') }}" class="text-muted text-hover-primary">Masterdata</a></li>
                     <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
-                    <li class="breadcrumb-item text-dark">Items</li>
+                    <li class="breadcrumb-item text-dark">Kategori</li>
                 </ul>
             </div>
         </div>
@@ -22,24 +22,22 @@
         <div class="card">
             <div class="card-header border-0 pt-6">
                 <div class="card-title">
-                    <h1 class="fw-bold fs-3">Daftar Item</h1>
+                    <h1 class="fw-bold fs-3">Daftar Kategori</h1>
                 </div>
                 <div class="card-toolbar">
-                    <a href="{{ route('admin.masterdata.items.create') }}" class="btn btn-primary">
-                        <i class="ki-duotone ki-plus fs-2"></i> Tambah Item
+                    <a href="{{ route('admin.masterdata.categories.create') }}" class="btn btn-primary">
+                        <i class="ki-duotone ki-plus fs-2"></i> Tambah Kategori
                     </a>
                 </div>
             </div>
             <div class="card-body py-6">
                 <div class="table-responsive">
-                    <table class="table align-middle table-row-dashed fs-6 gy-5" id="items_table">
+                    <table class="table align-middle table-row-dashed fs-6 gy-5" id="categories_table">
                         <thead>
                             <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
                                 <th>ID</th>
                                 <th>Nama</th>
-                                <th>SKU</th>
-                                <th>Kategori</th>
-                                <th>CNT</th>
+                                <th>Slug</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
                         </thead>
@@ -49,7 +47,7 @@
             </div>
         </div>
     </div>
-    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -57,13 +55,12 @@
 <script src="{{ asset('metronic/plugins/custom/datatables/datatables.bundle.js') }}"></script>
 <script>
     const csrfToken = '{{ csrf_token() }}';
-    const dataUrl   = '{{ route('admin.masterdata.items.data') }}';
-    const indexUrl  = '{{ route('admin.masterdata.items.index') }}';
-    const editTpl   = '{{ route('admin.masterdata.items.edit', ':id') }}';
-    const delTpl    = '{{ route('admin.masterdata.items.destroy', ':id') }}';
+    const dataUrl   = '{{ route('admin.masterdata.categories.data') }}';
+    const editTpl   = '{{ route('admin.masterdata.categories.edit', ':id') }}';
+    const delTpl    = '{{ route('admin.masterdata.categories.destroy', ':id') }}';
 
     document.addEventListener('DOMContentLoaded', function() {
-        const table = $('#items_table').DataTable({
+        $('#categories_table').DataTable({
             processing: true,
             serverSide: false,
             dom: 'lrtip',
@@ -71,16 +68,14 @@
                 url: dataUrl,
                 dataSrc: 'data',
                 error: function(xhr){
-                    console.error('Items AJAX error:', xhr.responseText);
-                    alert('Gagal memuat data item');
+                    console.error('Categories AJAX error:', xhr.responseText);
+                    alert('Gagal memuat data kategori');
                 }
             },
             columns: [
                 { data: 'id', name: 'id' },
                 { data: 'name', name: 'name' },
-                { data: 'sku', name: 'sku' },
-                { data: 'category', name: 'category', defaultContent: '-' },
-                { data: 'cnt', name: 'cnt', defaultContent: '-' },
+                { data: 'slug', name: 'slug' },
                 {
                     data: 'id',
                     orderable: false,
@@ -98,29 +93,29 @@
             ]
         });
 
-        $('#items_table').on('click', '.btn-delete', function() {
-            const id = this.getAttribute('data-id');
+        $('#categories_table').on('click', '.btn-delete', function() {
             const url = this.getAttribute('data-url');
-            if (!confirm('Yakin ingin menghapus item ini?')) return;
+            if (!confirm('Yakin ingin menghapus kategori ini?')) return;
             fetch(url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
                 body: new URLSearchParams({ _method: 'DELETE' })
             }).then(res => {
                 if (res.ok) {
-                    $('#items_table').DataTable().ajax.reload(null, false);
+                    $('#categories_table').DataTable().ajax.reload(null, false);
                 } else {
-                    alert('Gagal menghapus item');
+                    alert('Gagal menghapus kategori');
                 }
-            }).catch(() => alert('Gagal menghapus item'));
+            }).catch(() => alert('Gagal menghapus kategori'));
         });
 
         const globalInput = document.getElementById('global_search');
         if (globalInput) {
+            const catTable = $('#categories_table').DataTable();
             globalInput.addEventListener('input', function() {
-                table.search(this.value).draw();
+                catTable.search(this.value).draw();
             });
         }
     });
-</script>
+    </script>
 @endpush
