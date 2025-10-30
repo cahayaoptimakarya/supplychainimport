@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@yield('title', 'Admin')</title>
+    <link rel="shortcut icon" href="{{ asset('metronic/media/logos/favicon.ico') }}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
+    <link href="{{ asset('metronic/plugins/custom/fullcalendar/fullcalendar.bundle.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('metronic/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('metronic/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
+    @stack('styles')
+    @yield('styles')
+    <meta name="description" content="Admin dashboard" />
+    <meta name="keywords" content="admin,dashboard,metronic" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website" />
+</head>
+<body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed toolbar-enabled toolbar-fixed aside-enabled aside-fixed" style="--kt-toolbar-height:55px;--kt-toolbar-height-tablet-and-mobile:55px">
+    <div class="d-flex flex-column flex-root">
+        <div class="page d-flex flex-row flex-column-fluid">
+            @include('layouts.partials.sidebar')
+            <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
+                @include('layouts.partials.topbar')
+                <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+                    @yield('content')
+                </div>
+                @include('layouts.partials.footer')
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ asset('metronic/plugins/global/plugins.bundle.js') }}"></script>
+    <script src="{{ asset('metronic/js/scripts.bundle.js') }}"></script>
+    <script src="{{ asset('metronic/plugins/custom/fullcalendar/fullcalendar.bundle.js') }}"></script>
+    <script src="{{ asset('metronic/js/custom/widgets.js') }}"></script>
+    <script src="{{ asset('metronic/js/custom/apps/chat/chat.js') }}"></script>
+    <script src="{{ asset('metronic/js/custom/modals/create-app.js') }}"></script>
+    <script src="{{ asset('metronic/js/custom/modals/upgrade-plan.js') }}"></script>
+    @stack('scripts')
+    @yield('scripts')
+</body>
+</html>
+
