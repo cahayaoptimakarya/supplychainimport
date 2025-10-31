@@ -56,6 +56,24 @@
                                 <span class="menu-title">User</span>
                             </a>
                         </div>
+                        <div class="menu-item">
+                            <a class="menu-link {{ request()->routeIs('admin.masterdata.roles.*') ? 'active' : '' }}" href="{{ route('admin.masterdata.roles.index') }}">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-title">Role</span>
+                            </a>
+                        </div>
+                        <div class="menu-item">
+                            <a class="menu-link {{ request()->routeIs('admin.masterdata.menus.*') ? 'active' : '' }}" href="{{ route('admin.masterdata.menus.index') }}">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-title">Menu</span>
+                            </a>
+                        </div>
+                        <div class="menu-item">
+                            <a class="menu-link {{ request()->routeIs('admin.masterdata.permissions.*') ? 'active' : '' }}" href="{{ route('admin.masterdata.permissions.index') }}">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-title">Permission</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

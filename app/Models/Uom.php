@@ -9,11 +9,10 @@ class Uom extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'symbol', 'keterangan'];
 
     public function items()
     {
         return $this->hasMany(Item::class);
     }
 }
-

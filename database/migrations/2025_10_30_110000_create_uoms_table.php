@@ -11,6 +11,8 @@ return new class extends Migration
         Schema::create('uoms', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->string('symbol', 20)->nullable()->unique();
+            $table->text('keterangan')->nullable();
             $table->timestamps();
         });
     }

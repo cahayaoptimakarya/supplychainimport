@@ -31,6 +31,8 @@
                             <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
                                 <th>ID</th>
                                 <th>Nama</th>
+                                <th>Simbol</th>
+                                <th>Keterangan</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
                         </thead>
@@ -68,6 +70,8 @@
             columns: [
                 { data: 'id', name: 'id' },
                 { data: 'name', name: 'name' },
+                { data: 'symbol', name: 'symbol', defaultContent: '-' },
+                { data: 'keterangan', name: 'keterangan', defaultContent: '-' },
                 {
                     data: 'id',
                     orderable: false,

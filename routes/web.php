@@ -5,6 +5,9 @@ use App\Http\Controllers\Admin\ItemController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\UomController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\PermissionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -48,6 +51,24 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->as('admin.')->group(fu
         Route::get('/uom/data', [UomController::class, 'data'])->name('uom.data');
         // UOM CRUD
         Route::resource('uom', UomController::class)->except(['show'])->names('uom');
-        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        // Users DataTables
+        Route::get('/users/data', [AdminUserController::class, 'data'])->name('users.data');
+        // Users CRUD
+        Route::resource('users', AdminUserController::class)->except(['show'])->names('users');
+
+        // Roles DataTables
+        Route::get('/roles/data', [RoleController::class, 'data'])->name('roles.data');
+        // Roles CRUD
+        Route::resource('roles', RoleController::class)->except(['show'])->names('roles');
+
+        // Menus DataTables
+        Route::get('/menus/data', [MenuController::class, 'data'])->name('menus.data');
+        // Menus CRUD
+        Route::resource('menus', MenuController::class)->except(['show'])->names('menus');
+
+        // Permissions management
+        Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
+        Route::get('/permissions/{role}/edit', [PermissionController::class, 'edit'])->name('permissions.edit');
+        Route::put('/permissions/{role}', [PermissionController::class, 'update'])->name('permissions.update');
     });
 });

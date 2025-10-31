@@ -20,6 +20,8 @@ class UomController extends Controller
             return [
                 'id' => $uom->id,
                 'name' => $uom->name,
+                'symbol' => $uom->symbol,
+                'keterangan' => $uom->keterangan,
             ];
         });
         return response()->json(['data' => $uoms]);
@@ -34,6 +36,8 @@ class UomController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:uoms,name'],
+            'symbol' => ['nullable', 'string', 'max:20', 'unique:uoms,symbol'],
+            'keterangan' => ['nullable', 'string'],
         ]);
         Uom::create($validated);
         return redirect()->route('admin.masterdata.uom.index')->with('success', 'UOM berhasil dibuat');
@@ -48,6 +52,8 @@ class UomController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', Rule::unique('uoms', 'name')->ignore($uom->id)],
+            'symbol' => ['nullable', 'string', 'max:20', Rule::unique('uoms', 'symbol')->ignore($uom->id)],
+            'keterangan' => ['nullable', 'string'],
         ]);
         $uom->update($validated);
         return redirect()->route('admin.masterdata.uom.index')->with('success', 'UOM berhasil diperbarui');
