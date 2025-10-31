@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\SupplierCategoryController;
+use App\Http\Controllers\Admin\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -61,6 +62,11 @@ Route::middleware(['auth', 'verified', 'menu.permission'])->prefix('admin')->as(
         Route::get('/suppliers/data', [SupplierController::class, 'data'])->name('suppliers.data');
         // Suppliers CRUD
         Route::resource('suppliers', SupplierController::class)->except(['show'])->names('suppliers');
+
+        // Warehouses DataTables AJAX endpoint
+        Route::get('/warehouses/data', [WarehouseController::class, 'data'])->name('warehouses.data');
+        // Warehouses CRUD
+        Route::resource('warehouses', WarehouseController::class)->except(['show'])->names('warehouses');
         // UOM DataTables AJAX endpoint
         Route::get('/uom/data', [UomController::class, 'data'])->name('uom.data');
         // UOM CRUD

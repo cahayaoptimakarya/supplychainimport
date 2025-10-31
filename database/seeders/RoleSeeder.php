@@ -36,6 +36,7 @@ class RoleSeeder extends Seeder
             ['name' => 'UOM', 'slug' => 'uoms', 'route' => 'admin.masterdata.uom.index', 'icon' => 'scale', 'parent_slug' => 'master-data', 'sort_order' => 12],
             // Grouped: Suppliers page contains Supplier Categories as a tab
             ['name' => 'Suppliers', 'slug' => 'suppliers', 'route' => 'admin.masterdata.suppliers.index', 'icon' => 'box', 'parent_slug' => 'master-data', 'sort_order' => 13],
+            ['name' => 'Warehouses', 'slug' => 'warehouses', 'route' => 'admin.masterdata.warehouses.index', 'icon' => 'home', 'parent_slug' => 'master-data', 'sort_order' => 14],
             ['name' => 'Users', 'slug' => 'users', 'route' => 'admin.masterdata.users.index', 'icon' => 'users', 'parent_slug' => 'master-data', 'sort_order' => 20],
             ['name' => 'Roles', 'slug' => 'roles', 'route' => 'admin.masterdata.roles.index', 'icon' => 'shield', 'parent_slug' => 'master-data', 'sort_order' => 21],
             ['name' => 'Menus', 'slug' => 'menus', 'route' => 'admin.masterdata.menus.index', 'icon' => 'menu', 'parent_slug' => 'master-data', 'sort_order' => 22],
