@@ -32,7 +32,7 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 // Admin area
-Route::middleware(['auth', 'verified'])->prefix('admin')->as('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'menu.permission'])->prefix('admin')->as('admin.')->group(function () {
     Route::get('/', function () {
         return redirect()->route('admin.masterdata.items.index');
     })->name('dashboard');

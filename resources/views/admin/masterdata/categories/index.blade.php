@@ -5,7 +5,10 @@
 @section('page_title', 'Kategori Item')
 
 @section('page_actions')
+@php use App\Support\Permission as Perm; @endphp
+@if(Perm::can(auth()->user(), 'admin.masterdata.categories.index', 'create'))
 <a href="{{ route('admin.masterdata.categories.create') }}" class="btn btn-primary">Create</a>
+@endif
 @endsection
 
 @section('page_breadcrumbs')
@@ -52,6 +55,8 @@
     const dataUrl   = '{{ route('admin.masterdata.categories.data') }}';
     const editTpl   = '{{ route('admin.masterdata.categories.edit', ':id') }}';
     const delTpl    = '{{ route('admin.masterdata.categories.destroy', ':id') }}';
+    const canUpdate = {{ \App\Support\Permission::can(auth()->user(), 'admin.masterdata.categories.index', 'update') ? 'true' : 'false' }};
+    const canDelete = {{ \App\Support\Permission::can(auth()->user(), 'admin.masterdata.categories.index', 'delete') ? 'true' : 'false' }};
 
     document.addEventListener('DOMContentLoaded', function() {
         $('#categories_table').DataTable({
@@ -78,10 +83,10 @@
                     render: function (data, type, row) {
                         const editUrl = editTpl.replace(':id', data);
                         const delUrl  = delTpl.replace(':id', data);
-                        return `
-                            <a href="${editUrl}" class="btn btn-light-primary btn-sm me-2">Edit</a>
-                            <button type="button" data-id="${data}" data-url="${delUrl}" class="btn btn-light-danger btn-sm btn-delete">Hapus</button>
-                        `;
+                        let html = '';
+                        if (canUpdate) html += `<a href="${editUrl}" class="btn btn-light-primary btn-sm me-2">Edit</a>`;
+                        if (canDelete) html += `<button type="button" data-id="${data}" data-url="${delUrl}" class="btn btn-light-danger btn-sm btn-delete">Hapus</button>`;
+                        return html || '-';
                     }
                 }
             ]

@@ -16,66 +16,55 @@
     <div class="aside-menu flex-column-fluid">
         <div class="hover-scroll-overlay-y my-5 my-lg-5" id="kt_aside_menu_wrapper" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_footer" data-kt-scroll-wrappers="#kt_aside_menu" data-kt-scroll-offset="0">
             <div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-arrow-gray-500" id="kt_aside_menu" data-kt-menu="true">
-                
-                <!-- Masterdata dropdown -->
-                <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ request()->routeIs('admin.masterdata.*') ? 'here show' : '' }}">
-                    <span class="menu-link">
-                        <span class="menu-icon">
-                            <span class="svg-icon svg-icon-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path d="M3 4.5C3 3.94772 3.44772 3.5 4 3.5H20C20.5523 3.5 21 3.94772 21 4.5V7.5C21 8.05228 20.5523 8.5 20 8.5H4C3.44772 8.5 3 8.05228 3 7.5V4.5Z" fill="black"/>
-                                    <path opacity="0.3" d="M3 11.5C3 10.9477 3.44772 10.5 4 10.5H20C20.5523 10.5 21 10.9477 21 11.5V19.5C21 20.0523 20.5523 20.5 20 20.5H4C3.44772 20.5 3 20.0523 3 19.5V11.5Z" fill="black"/>
-                                </svg>
+                <?php
+                    use App\Models\Menu as MenuModel;
+                    use App\Support\Permission as Perm;
+                    $user = auth()->user();
+                    $allowed = $user ? Perm::viewableMenuIds($user) : collect();
+                    $topMenus = MenuModel::whereNull('parent_id')->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
+                ?>
+                @foreach($topMenus as $top)
+                    <?php
+                        $children = MenuModel::where('parent_id', $top->id)->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
+                        $children = $children->filter(fn($c)=> $allowed->contains($c->id));
+                        $showTop = $allowed->contains($top->id) || $children->isNotEmpty();
+                        if (!$showTop) continue;
+                        $isActive = $top->route ? request()->routeIs($top->route) : $children->contains(function($c){ return $c->route && request()->routeIs($c->route); });
+                    ?>
+                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ $isActive ? 'here show' : '' }}">
+                        <span class="menu-link">
+                            <span class="menu-icon">
+                                <span class="svg-icon svg-icon-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M3 4.5C3 3.94772 3.44772 3.5 4 3.5H20C20.5523 3.5 21 3.94772 21 4.5V7.5C21 8.05228 20.5523 8.5 20 8.5H4C3.44772 8.5 3 8.05228 3 7.5V4.5Z" fill="black"/>
+                                        <path opacity="0.3" d="M3 11.5C3 10.9477 3.44772 10.5 4 10.5H20C20.5523 10.5 21 10.9477 21 11.5V19.5C21 20.0523 20.5523 20.5 20 20.5H4C3.44772 20.5 3 20.0523 3 19.5V11.5Z" fill="black"/>
+                                    </svg>
+                                </span>
                             </span>
+                            <span class="menu-title">{{ $top->name }}</span>
+                            <span class="menu-arrow"></span>
                         </span>
-                        <span class="menu-title">Masterdata</span>
-                        <span class="menu-arrow"></span>
-                    </span>
-                    <div class="menu-sub menu-sub-accordion menu-active-bg">
-                        <div class="menu-item">
-                            <a class="menu-link {{ request()->routeIs('admin.masterdata.items.*') ? 'active' : '' }}" href="{{ route('admin.masterdata.items.index') }}">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Item</span>
-                            </a>
-                        </div>
-                        <div class="menu-item">
-                            <a class="menu-link {{ request()->routeIs('admin.masterdata.categories.*') ? 'active' : '' }}" href="{{ route('admin.masterdata.categories.index') }}">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Kategori Item</span>
-                            </a>
-                        </div>
-                        <div class="menu-item">
-                            <a class="menu-link {{ request()->routeIs('admin.masterdata.uom.*') ? 'active' : '' }}" href="{{ route('admin.masterdata.uom.index') }}">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">UOM</span>
-                            </a>
-                        </div>
-                        <div class="menu-item">
-                            <a class="menu-link {{ request()->routeIs('admin.masterdata.users.*') ? 'active' : '' }}" href="{{ route('admin.masterdata.users.index') }}">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">User</span>
-                            </a>
-                        </div>
-                        <div class="menu-item">
-                            <a class="menu-link {{ request()->routeIs('admin.masterdata.roles.*') ? 'active' : '' }}" href="{{ route('admin.masterdata.roles.index') }}">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Role</span>
-                            </a>
-                        </div>
-                        <div class="menu-item">
-                            <a class="menu-link {{ request()->routeIs('admin.masterdata.menus.*') ? 'active' : '' }}" href="{{ route('admin.masterdata.menus.index') }}">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Menu</span>
-                            </a>
-                        </div>
-                        <div class="menu-item">
-                            <a class="menu-link {{ request()->routeIs('admin.masterdata.permissions.*') ? 'active' : '' }}" href="{{ route('admin.masterdata.permissions.index') }}">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Permission</span>
-                            </a>
+                        <div class="menu-sub menu-sub-accordion menu-active-bg">
+                            @if($top->route && $allowed->contains($top->id))
+                                <div class="menu-item">
+                                    <a class="menu-link {{ request()->routeIs($top->route) ? 'active' : '' }}" href="{{ $top->route ? route($top->route) : '#' }}">
+                                        <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                        <span class="menu-title">{{ $top->name }}</span>
+                                    </a>
+                                </div>
+                            @endif
+
+                            @foreach($children as $child)
+                                <div class="menu-item">
+                                    <a class="menu-link {{ $child->route && request()->routeIs($child->route) ? 'active' : '' }}" href="{{ $child->route ? route($child->route) : '#' }}">
+                                        <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                        <span class="menu-title">{{ $child->name }}</span>
+                                    </a>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
-                </div>
+                @endforeach
             </div>
         </div>
     </div>
