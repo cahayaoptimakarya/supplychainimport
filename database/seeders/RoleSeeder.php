@@ -31,6 +31,7 @@ class RoleSeeder extends Seeder
         $menuRows = [
             ['name' => 'Dashboard', 'slug' => 'dashboard', 'route' => 'dashboard', 'icon' => 'home', 'parent_slug' => null, 'sort_order' => 0],
             ['name' => 'Master Data', 'slug' => 'master-data', 'route' => null, 'icon' => 'database', 'parent_slug' => null, 'sort_order' => 10],
+            ['name' => 'Procurement', 'slug' => 'procurement', 'route' => null, 'icon' => 'truck', 'parent_slug' => null, 'sort_order' => 30],
             // Grouped: Items page contains Item Categories as a tab
             ['name' => 'Items', 'slug' => 'items', 'route' => 'admin.masterdata.items.index', 'icon' => 'box', 'parent_slug' => 'master-data', 'sort_order' => 11],
             ['name' => 'UOM', 'slug' => 'uoms', 'route' => 'admin.masterdata.uom.index', 'icon' => 'scale', 'parent_slug' => 'master-data', 'sort_order' => 12],
@@ -41,6 +42,11 @@ class RoleSeeder extends Seeder
             ['name' => 'Roles', 'slug' => 'roles', 'route' => 'admin.masterdata.roles.index', 'icon' => 'shield', 'parent_slug' => 'master-data', 'sort_order' => 21],
             ['name' => 'Menus', 'slug' => 'menus', 'route' => 'admin.masterdata.menus.index', 'icon' => 'menu', 'parent_slug' => 'master-data', 'sort_order' => 22],
             ['name' => 'Permissions', 'slug' => 'permissions', 'route' => 'admin.masterdata.permissions.index', 'icon' => 'lock', 'parent_slug' => 'master-data', 'sort_order' => 23],
+
+            // Procurement children
+            ['name' => 'Purchase Orders', 'slug' => 'purchase-orders', 'route' => 'admin.procurement.purchase-orders.index', 'icon' => 'file-text', 'parent_slug' => 'procurement', 'sort_order' => 31],
+            ['name' => 'Shipments', 'slug' => 'shipments', 'route' => 'admin.procurement.shipments.index', 'icon' => 'package', 'parent_slug' => 'procurement', 'sort_order' => 32],
+            ['name' => 'Warehouse Receipts', 'slug' => 'receipts', 'route' => 'admin.procurement.receipts.index', 'icon' => 'inbox', 'parent_slug' => 'procurement', 'sort_order' => 33],
         ];
 
         // Insert parents first

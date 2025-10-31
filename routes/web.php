@@ -91,4 +91,19 @@ Route::middleware(['auth', 'verified', 'menu.permission'])->prefix('admin')->as(
         Route::get('/permissions/{role}/edit', [PermissionController::class, 'edit'])->name('permissions.edit');
         Route::put('/permissions/{role}', [PermissionController::class, 'update'])->name('permissions.update');
     });
+
+    // Procurement & Logistics
+    Route::prefix('procurement')->as('procurement.')->group(function () {
+        // Purchase Orders
+        Route::get('/purchase-orders/data', [\App\Http\Controllers\Admin\PurchaseOrderController::class, 'data'])->name('purchase-orders.data');
+        Route::resource('purchase-orders', \App\Http\Controllers\Admin\PurchaseOrderController::class)->except(['show'])->names('purchase-orders');
+
+        // Shipments
+        Route::get('/shipments/data', [\App\Http\Controllers\Admin\ShipmentController::class, 'data'])->name('shipments.data');
+        Route::resource('shipments', \App\Http\Controllers\Admin\ShipmentController::class)->except(['show'])->names('shipments');
+
+        // Warehouse Receipts (GRN)
+        Route::get('/receipts/data', [\App\Http\Controllers\Admin\WarehouseReceiptController::class, 'data'])->name('receipts.data');
+        Route::resource('receipts', \App\Http\Controllers\Admin\WarehouseReceiptController::class)->only(['index','create','store'])->names('receipts');
+    });
 });
