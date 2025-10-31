@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\SupplierController;
+use App\Http\Controllers\Admin\SupplierCategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -40,6 +42,8 @@ Route::middleware(['auth', 'verified', 'menu.permission'])->prefix('admin')->as(
     Route::prefix('masterdata')->as('masterdata.')->group(function () {
         // Items DataTables AJAX endpoint
         Route::get('/items/data', [ItemController::class, 'data'])->name('items.data');
+        // Items Import CSV
+        Route::post('/items/import', [ItemController::class, 'import'])->name('items.import');
         // Items CRUD
         Route::resource('items', ItemController::class)->except(['show'])->names('items');
 
@@ -47,6 +51,16 @@ Route::middleware(['auth', 'verified', 'menu.permission'])->prefix('admin')->as(
         Route::get('/categories/data', [CategoryController::class, 'data'])->name('categories.data');
         // Categories CRUD
         Route::resource('categories', CategoryController::class)->except(['show'])->names('categories');
+
+        // Supplier Categories DataTables AJAX endpoint
+        Route::get('/supplier-categories/data', [SupplierCategoryController::class, 'data'])->name('supplier-categories.data');
+        // Supplier Categories CRUD
+        Route::resource('supplier-categories', SupplierCategoryController::class)->except(['show'])->names('supplier-categories');
+
+        // Suppliers DataTables AJAX endpoint
+        Route::get('/suppliers/data', [SupplierController::class, 'data'])->name('suppliers.data');
+        // Suppliers CRUD
+        Route::resource('suppliers', SupplierController::class)->except(['show'])->names('suppliers');
         // UOM DataTables AJAX endpoint
         Route::get('/uom/data', [UomController::class, 'data'])->name('uom.data');
         // UOM CRUD

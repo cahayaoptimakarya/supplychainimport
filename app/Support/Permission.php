@@ -10,7 +10,15 @@ class Permission
 {
     public static function resolveBaseRoute(string $routeName): string
     {
-        return preg_replace('/\.(create|store|edit|update|destroy|show|data)$/', '.index', $routeName);
+        $base = preg_replace('/\.(create|store|edit|update|destroy|show|data|import)$/', '.index', $routeName);
+        // Map child resources to their parent menu permission
+        if (str_starts_with($base, 'admin.masterdata.categories.')) {
+            return 'admin.masterdata.items.index';
+        }
+        if (str_starts_with($base, 'admin.masterdata.supplier-categories.')) {
+            return 'admin.masterdata.suppliers.index';
+        }
+        return $base;
     }
 
     public static function actionFromRoute(string $routeName): string
@@ -61,4 +69,3 @@ class Permission
             ->unique();
     }
 }
-

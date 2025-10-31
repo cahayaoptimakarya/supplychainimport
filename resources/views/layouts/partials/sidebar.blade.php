@@ -19,9 +19,14 @@
                 <?php
                     use App\Models\Menu as MenuModel;
                     use App\Support\Permission as Perm;
+                    use Illuminate\Support\Facades\Route as RouteFacade;
+                    use Illuminate\Support\Str;
+
                     $user = auth()->user();
                     $allowed = $user ? Perm::viewableMenuIds($user) : collect();
                     $topMenus = MenuModel::whereNull('parent_id')->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
+                    $currentRouteName = RouteFacade::currentRouteName();
+                    $currentBase = $currentRouteName ? Perm::resolveBaseRoute($currentRouteName) : null;
                 ?>
                 @foreach($topMenus as $top)
                     <?php
@@ -29,7 +34,22 @@
                         $children = $children->filter(fn($c)=> $allowed->contains($c->id));
                         $showTop = $allowed->contains($top->id) || $children->isNotEmpty();
                         if (!$showTop) continue;
-                        $isActive = $top->route ? request()->routeIs($top->route) : $children->contains(function($c){ return $c->route && request()->routeIs($c->route); });
+                        $isActive = $top->route
+                            ? (
+                                request()->routeIs($top->route)
+                                || ($currentBase && $top->route === $currentBase)
+                                || (
+                                    $top->route && Str::endsWith($top->route, '.index')
+                                    && request()->routeIs(Str::beforeLast($top->route, '.index').'.*')
+                                )
+                              )
+                            : $children->contains(function($c) use ($currentBase) {
+                                return $c->route && (
+                                    request()->routeIs($c->route)
+                                    || ($currentBase && $c->route === $currentBase)
+                                    || (Str::endsWith($c->route, '.index') && request()->routeIs(Str::beforeLast($c->route, '.index').'.*'))
+                                );
+                              });
                     ?>
                     <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ $isActive ? 'here show' : '' }}">
                         <span class="menu-link">
@@ -55,8 +75,15 @@
                             @endif
 
                             @foreach($children as $child)
+                                <?php
+                                    $childActive = $child->route && (
+                                        request()->routeIs($child->route)
+                                        || ($currentBase && $child->route === $currentBase)
+                                        || (Str::endsWith($child->route, '.index') && request()->routeIs(Str::beforeLast($child->route, '.index').'.*'))
+                                    );
+                                ?>
                                 <div class="menu-item">
-                                    <a class="menu-link {{ $child->route && request()->routeIs($child->route) ? 'active' : '' }}" href="{{ $child->route ? route($child->route) : '#' }}">
+                                    <a class="menu-link {{ $childActive ? 'active' : '' }}" href="{{ $child->route ? route($child->route) : '#' }}">
                                         <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
                                         <span class="menu-title">{{ $child->name }}</span>
                                     </a>

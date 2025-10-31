@@ -44,12 +44,14 @@ class CategoryController extends Controller
         $base = $slug; $i = 1;
         while (Category::where('slug', $slug)->exists()) { $slug = $base.'-'.$i++; }
 
-        Category::create([
+        $category = Category::create([
             'name' => $validated['name'],
             'slug' => $slug,
         ]);
-
-        return redirect()->route('admin.masterdata.categories.index')->with('success', 'Kategori berhasil dibuat');
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Kategori berhasil dibuat', 'data' => $category]);
+        }
+        return redirect()->to(route('admin.masterdata.items.index') . '#tab_categories')->with('success', 'Kategori berhasil dibuat');
     }
 
     public function edit(Category $category)
@@ -71,14 +73,18 @@ class CategoryController extends Controller
             'name' => $validated['name'],
             'slug' => $slug,
         ]);
-
-        return redirect()->route('admin.masterdata.categories.index')->with('success', 'Kategori berhasil diperbarui');
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Kategori berhasil diperbarui', 'data' => $category]);
+        }
+        return redirect()->to(route('admin.masterdata.items.index') . '#tab_categories')->with('success', 'Kategori berhasil diperbarui');
     }
 
-    public function destroy(Category $category)
+    public function destroy(Request $request, Category $category)
     {
         $category->delete();
-        return redirect()->route('admin.masterdata.categories.index')->with('success', 'Kategori berhasil dihapus');
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Kategori berhasil dihapus']);
+        }
+        return redirect()->to(route('admin.masterdata.items.index') . '#tab_categories')->with('success', 'Kategori berhasil dihapus');
     }
 }
-
