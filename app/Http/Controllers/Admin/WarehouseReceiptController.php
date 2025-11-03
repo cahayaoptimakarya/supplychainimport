@@ -23,24 +23,98 @@ class WarehouseReceiptController extends Controller
 
     public function data(Request $request)
     {
-        $rows = WarehouseReceipt::with(['shipment', 'warehouse', 'items'])
-            ->latest('id')
-            ->get()
-            ->map(function ($r) {
-                $qty = (float) $r->items->sum('qty_received');
-                $koli = (float) $r->items->sum('koli_received');
-                return [
-                    'id' => $r->id,
-                    'code' => $r->code,
-                    'shipment' => $r->shipment ? ($r->shipment->container_no ?: ('#'.$r->shipment->id)) : '-',
-                    'warehouse' => optional($r->warehouse)->name,
-                    'received_at' => optional($r->received_at)->format('Y-m-d H:i'),
-                    'status' => $r->status,
-                    'qty_total' => $qty,
-                    'koli_total' => $koli,
-                ];
-            });
-        return response()->json(['data' => $rows]);
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+        $search = (string) data_get($request->input('search', []), 'value', '');
+        $status = $request->input('status');
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+
+        $base = \DB::table('warehouse_receipts as wr')
+            ->leftJoin('shipments as sh', 'sh.id', '=', 'wr.shipment_id')
+            ->leftJoin('warehouses as wh', 'wh.id', '=', 'wr.warehouse_id')
+            ->leftJoin('receipt_items as ri', 'ri.warehouse_receipt_id', '=', 'wr.id')
+            ->groupBy('wr.id');
+
+        $recordsTotal = \DB::table('warehouse_receipts')->count();
+
+        $filtered = (clone $base)
+            ->selectRaw('wr.id')
+            ->when($search, function($q) use ($search){
+                $like = '%'.$search.'%';
+                $q->where(function($w) use ($like){
+                    $w->where('wr.code','like',$like)
+                      ->orWhere('sh.container_no','like',$like)
+                      ->orWhere('wh.name','like',$like);
+                });
+            })
+            ->when($status, fn($q)=> $q->where('wr.status', $status))
+            ->when($dateFrom, fn($q)=> $q->where('wr.received_at','>=',$dateFrom))
+            ->when($dateTo, fn($q)=> $q->where('wr.received_at','<=',$dateTo));
+        $recordsFiltered = $filtered->get()->count();
+
+        $dataQuery = (clone $base)
+            ->selectRaw('wr.id, wr.code, wr.received_at, wr.status')
+            ->selectRaw("COALESCE(sh.container_no, CONCAT('#', sh.id)) as shipment")
+            ->selectRaw('wh.name as warehouse')
+            ->selectRaw('COALESCE(SUM(ri.qty_received),0) as qty_total')
+            ->selectRaw('COALESCE(SUM(ri.koli_received),0) as koli_total')
+            ->when($search, function($q) use ($search){
+                $like = '%'.$search.'%';
+                $q->where(function($w) use ($like){
+                    $w->where('wr.code','like',$like)
+                      ->orWhere('sh.container_no','like',$like)
+                      ->orWhere('wh.name','like',$like);
+                });
+            })
+            ->when($status, fn($q)=> $q->where('wr.status', $status))
+            ->when($dateFrom, fn($q)=> $q->where('wr.received_at','>=',$dateFrom))
+            ->when($dateTo, fn($q)=> $q->where('wr.received_at','<=',$dateTo));
+
+        // Ordering
+        $orderReq = $request->input('order', []);
+        $columnsReq = $request->input('columns', []);
+        $columnsMap = [
+            'id' => 'wr.id',
+            'code' => 'wr.code',
+            'shipment' => 'shipment',
+            'warehouse' => 'warehouse',
+            'received_at' => 'wr.received_at',
+            'status' => 'wr.status',
+            'qty_total' => 'qty_total',
+            'koli_total' => 'koli_total',
+        ];
+        foreach ($orderReq as $ord) {
+            $idx = (int) ($ord['column'] ?? 0);
+            $dir = ($ord['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+            $colData = (string) data_get($columnsReq, $idx.'.data', 'wr.id');
+            $col = $columnsMap[$colData] ?? 'wr.id';
+            $dataQuery->orderByRaw("$col $dir");
+        }
+        if (empty($orderReq)) {
+            $dataQuery->orderBy('wr.id','desc');
+        }
+
+        $rows = $dataQuery->skip($start)->take($length)->get()->map(function($r){
+            return [
+                'id' => $r->id,
+                'code' => $r->code,
+                'shipment' => $r->shipment ?? '-',
+                'warehouse' => $r->warehouse,
+                'received_at' => $r->received_at ? \Carbon\Carbon::parse($r->received_at)->format('Y-m-d H:i') : null,
+                'status' => $r->status,
+                'qty_total' => (int) $r->qty_total,
+                'koli_total' => $r->koli_total,
+            ];
+        });
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $rows,
+        ]);
     }
 
     public function create()
@@ -48,7 +122,8 @@ class WarehouseReceiptController extends Controller
         $warehouses = Warehouse::orderBy('name')->get();
         // shipments available for receiving (any status, user decides)
         $shipments = Shipment::with('items')->orderByDesc('id')->get();
-        return view('admin.procurement.receipts.create', compact('warehouses', 'shipments'));
+        $code = 'WR-'.now()->format('ymd').'-'.strtoupper(Str::random(4));
+        return view('admin.procurement.receipts.create', compact('warehouses', 'shipments', 'code'));
     }
 
     public function store(Request $request)
@@ -63,11 +138,17 @@ class WarehouseReceiptController extends Controller
             'items.*.koli_received' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated, $request) {
+            $code = $request->input('code');
+            if (!$code) { $code = 'WR-'.now()->format('ymd').'-'.strtoupper(Str::random(4)); }
+            while (\App\Models\WarehouseReceipt::where('code', $code)->exists()) {
+                $code = 'WR-'.now()->format('ymd').'-'.strtoupper(Str::random(4));
+            }
+
             $receipt = WarehouseReceipt::create([
                 'shipment_id' => $validated['shipment_id'],
                 'warehouse_id' => $validated['warehouse_id'],
-                'code' => 'WR-'.now()->format('ymd').'-'.strtoupper(Str::random(4)),
+                'code' => $code,
                 'received_at' => $validated['received_at'],
                 'status' => 'posted',
             ]);

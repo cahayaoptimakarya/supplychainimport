@@ -47,7 +47,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label required">Received At</label>
-                            <input type="datetime-local" name="received_at" value="{{ old('received_at', optional($receipt->received_at)->format('Y-m-d\TH:i')) }}" class="form-control @error('received_at') is-invalid @enderror" required />
+                            <input type="text" name="received_at" value="{{ old('received_at', optional($receipt->received_at)->format('Y-m-d H:i')) }}" class="form-control js-fp-dt @error('received_at') is-invalid @enderror" required />
                             @error('received_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
@@ -154,4 +154,15 @@ document.addEventListener('DOMContentLoaded', function(){
     if (preset.length) preset.forEach(addRow); else addRow();
 });
 </script>
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+@endpush
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        flatpickr('.js-fp-dt', { enableTime: true, dateFormat: 'Y-m-d H:i' });
+    });
+</script>
+@endpush
 @endsection

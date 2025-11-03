@@ -22,7 +22,8 @@
                     <div class="row mb-10">
                         <div class="col-md-3">
                             <label class="form-label">Code</label>
-                            <input type="text" class="form-control" value="Akan dibuat saat simpan" disabled readonly />
+                            <input type="text" class="form-control" value="{{ $code }}" disabled readonly />
+                            <input type="hidden" name="code" value="{{ $code }}" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label required">Supplier</label>
@@ -36,7 +37,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label required">Tanggal</label>
-                            <input type="date" name="order_date" value="{{ old('order_date', now()->toDateString()) }}" class="form-control @error('order_date') is-invalid @enderror" required />
+                            <input type="text" name="order_date" value="{{ old('order_date', now()->toDateString()) }}" class="form-control js-fp-date @error('order_date') is-invalid @enderror" required />
                             @error('order_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-5">
@@ -137,4 +138,15 @@ document.addEventListener('DOMContentLoaded', function(){
     addRow();
 });
 </script>
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+@endpush
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        flatpickr('.js-fp-date', { dateFormat: 'Y-m-d' });
+    });
+</script>
+@endpush
 @endsection

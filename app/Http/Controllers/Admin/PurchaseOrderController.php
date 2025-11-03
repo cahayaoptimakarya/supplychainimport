@@ -20,38 +20,142 @@ class PurchaseOrderController extends Controller
 
     public function data(Request $request)
     {
-        $pos = PurchaseOrder::with(['supplier', 'lines'])
-            ->latest('order_date')
-            ->get()
-            ->map(function ($po) {
-                $ordered = (float) $po->lines->sum('qty_ordered');
-                $koliOrdered = (float) $po->lines->sum('koli_ordered');
-                $fulfilled = 0.0;
-                foreach ($po->lines as $l) { $fulfilled += (float) $l->fulfilled_qty; }
-                $open = max(0.0, $ordered - $fulfilled);
-                return [
-                    'id' => $po->id,
-                    'code' => $po->code,
-                    'ref_no' => $po->ref_no,
-                    'supplier' => optional($po->supplier)->name,
-                    'order_date' => optional($po->order_date)->format('Y-m-d'),
-                    'lines_count' => $po->lines->count(),
-                    'qty_ordered' => $ordered,
-                    'koli_ordered' => $koliOrdered,
-                    'qty_fulfilled' => $fulfilled,
-                    'qty_open' => $open,
-                    'status' => $open <= 0 ? 'fulfilled' : ($fulfilled > 0 ? 'partial' : 'open'),
-                ];
-            });
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+        $search = (string) data_get($request->input('search', []), 'value', '');
+        $status = $request->input('status');
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
 
-        return response()->json(['data' => $pos]);
+        $base = \DB::table('purchase_orders as po')
+            ->leftJoin('suppliers as s', 's.id', '=', 'po.supplier_id')
+            ->leftJoin('po_lines as pl', 'pl.purchase_order_id', '=', 'po.id')
+            ->leftJoin('receipt_allocations as ra', 'ra.po_line_id', '=', 'pl.id')
+            ->groupBy('po.id');
+
+        // recordsTotal (total rows before filtering)
+        $recordsTotal = \DB::table('purchase_orders')->count();
+
+        // Apply filters for recordsFiltered
+        $filtered = (clone $base)
+            ->selectRaw('po.id')
+            ->when($search, function($q) use ($search) {
+                $like = '%'.$search.'%';
+                $q->where(function($w) use ($like){
+                    $w->where('po.code', 'like', $like)
+                      ->orWhere('po.ref_no', 'like', $like)
+                      ->orWhere('s.name', 'like', $like);
+                });
+            })
+            ->when($dateFrom, fn($q)=> $q->whereDate('po.order_date', '>=', $dateFrom))
+            ->when($dateTo, fn($q)=> $q->whereDate('po.order_date', '<=', $dateTo));
+
+        // For status filtering we need aggregates; use having on computed fields
+        $filtered = $filtered
+            ->selectRaw(
+                "
+                COALESCE(SUM(pl.qty_ordered),0) as qty_ordered,
+                COALESCE(SUM(ra.qty),0) as qty_fulfilled,
+                GREATEST(0, COALESCE(SUM(pl.qty_ordered),0) - COALESCE(SUM(ra.qty),0)) as qty_open
+                "
+            );
+
+        if ($status === 'fulfilled') {
+            $filtered->havingRaw('qty_open <= 0');
+        } elseif ($status === 'partial') {
+            $filtered->havingRaw('qty_open > 0 AND qty_fulfilled > 0');
+        } elseif ($status === 'open') {
+            $filtered->havingRaw('qty_fulfilled = 0');
+        }
+
+        $recordsFiltered = $filtered->get()->count();
+
+        // Main data query with pagination and ordering
+        $dataQuery = (clone $base)
+            ->selectRaw('po.id, po.code, po.ref_no, po.order_date, s.name as supplier')
+            ->selectRaw('COUNT(DISTINCT pl.id) as lines_count')
+            ->selectRaw('COALESCE(SUM(pl.qty_ordered),0) as qty_ordered')
+            ->selectRaw('COALESCE(SUM(pl.koli_ordered),0) as koli_ordered')
+            ->selectRaw('COALESCE(SUM(ra.qty),0) as qty_fulfilled')
+            ->selectRaw('GREATEST(0, COALESCE(SUM(pl.qty_ordered),0) - COALESCE(SUM(ra.qty),0)) as qty_open')
+            ->selectRaw("CASE WHEN GREATEST(0, COALESCE(SUM(pl.qty_ordered),0) - COALESCE(SUM(ra.qty),0)) <= 0 THEN 'fulfilled' WHEN COALESCE(SUM(ra.qty),0) > 0 THEN 'partial' ELSE 'open' END as status")
+            ->when($search, function($q) use ($search) {
+                $like = '%'.$search.'%';
+                $q->where(function($w) use ($like){
+                    $w->where('po.code', 'like', $like)
+                      ->orWhere('po.ref_no', 'like', $like)
+                      ->orWhere('s.name', 'like', $like);
+                });
+            })
+            ->when($dateFrom, fn($q)=> $q->whereDate('po.order_date', '>=', $dateFrom))
+            ->when($dateTo, fn($q)=> $q->whereDate('po.order_date', '<=', $dateTo));
+
+        if ($status === 'fulfilled') {
+            $dataQuery->havingRaw('qty_open <= 0');
+        } elseif ($status === 'partial') {
+            $dataQuery->havingRaw('qty_open > 0 AND qty_fulfilled > 0');
+        } elseif ($status === 'open') {
+            $dataQuery->havingRaw('qty_fulfilled = 0');
+        }
+
+        // Ordering
+        $orderReq = $request->input('order', []);
+        $columnsReq = $request->input('columns', []);
+        $columnsMap = [
+            'id' => 'po.id',
+            'code' => 'po.code',
+            'ref_no' => 'po.ref_no',
+            'supplier' => 'supplier',
+            'order_date' => 'po.order_date',
+            'lines_count' => 'lines_count',
+            'qty_ordered' => 'qty_ordered',
+            'koli_ordered' => 'koli_ordered',
+            'qty_fulfilled' => 'qty_fulfilled',
+            'qty_open' => 'qty_open',
+            'status' => 'status',
+        ];
+        foreach ($orderReq as $ord) {
+            $idx = (int) ($ord['column'] ?? 0);
+            $dir = ($ord['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+            $colData = (string) data_get($columnsReq, $idx.'.data', 'order_date');
+            $col = $columnsMap[$colData] ?? 'po.order_date';
+            $dataQuery->orderByRaw("$col $dir");
+        }
+        if (empty($orderReq)) {
+            $dataQuery->orderBy('po.order_date', 'desc');
+        }
+
+        $rows = $dataQuery->skip($start)->take($length)->get()->map(function($r){
+            return [
+                'id' => $r->id,
+                'code' => $r->code,
+                'ref_no' => $r->ref_no,
+                'supplier' => $r->supplier,
+                'order_date' => $r->order_date ? \Carbon\Carbon::parse($r->order_date)->format('Y-m-d') : null,
+                'lines_count' => (int) $r->lines_count,
+                'qty_ordered' => (int) $r->qty_ordered,
+                'koli_ordered' => $r->koli_ordered, // may be null
+                'qty_fulfilled' => (int) $r->qty_fulfilled,
+                'qty_open' => (int) $r->qty_open,
+                'status' => $r->status,
+            ];
+        });
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $rows,
+        ]);
     }
 
     public function create()
     {
         $suppliers = Supplier::orderBy('name')->get();
         $items = Item::orderBy('name')->get();
-        return view('admin.procurement.purchase-orders.create', compact('suppliers', 'items'));
+        $code = 'PO-'.now()->format('ymd').'-'.strtoupper(Str::random(4));
+        return view('admin.procurement.purchase-orders.create', compact('suppliers', 'items', 'code'));
     }
 
     public function store(Request $request)
@@ -67,10 +171,17 @@ class PurchaseOrderController extends Controller
             'lines.*.notes' => ['nullable', 'string'],
         ]);
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated, $request) {
+            // Prefer provided code from form; ensure uniqueness
+            $code = $request->input('code');
+            if (!$code) { $code = 'PO-'.now()->format('ymd').'-'.strtoupper(Str::random(4)); }
+            while (PurchaseOrder::where('code', $code)->exists()) {
+                $code = 'PO-'.now()->format('ymd').'-'.strtoupper(Str::random(4));
+            }
+
             $po = PurchaseOrder::create([
                 'supplier_id' => $validated['supplier_id'],
-                'code' => 'PO-'.now()->format('ymd').'-'.strtoupper(Str::random(4)),
+                'code' => $code,
                 'order_date' => $validated['order_date'],
                 'ref_no' => $validated['ref_no'] ?? null,
                 'status' => 'open',

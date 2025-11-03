@@ -20,32 +20,109 @@ class ShipmentController extends Controller
 
     public function data(Request $request)
     {
-        $rows = Shipment::with(['supplier', 'items'])
-            ->latest('id')
-            ->get()
-            ->map(function ($s) {
-                $koliExpected = (float) $s->items->sum('koli_expected');
-                return [
-                    'id' => $s->id,
-                    'code' => $s->code,
-                    'supplier' => optional($s->supplier)->name,
-                    'container_no' => $s->container_no,
-                    'pl_no' => $s->pl_no,
-                    'etd' => optional($s->etd)->format('Y-m-d'),
-                    'eta' => optional($s->eta)->format('Y-m-d'),
-                    'status' => $s->status,
-                    'items_count' => $s->items->count(),
-                    'koli_expected_total' => $koliExpected,
-                ];
-            });
-        return response()->json(['data' => $rows]);
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+        $search = (string) data_get($request->input('search', []), 'value', '');
+        $status = $request->input('status');
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+
+        $base = \DB::table('shipments as sh')
+            ->leftJoin('suppliers as s', 's.id', '=', 'sh.supplier_id')
+            ->leftJoin('shipment_items as si', 'si.shipment_id', '=', 'sh.id')
+            ->groupBy('sh.id');
+
+        $recordsTotal = \DB::table('shipments')->count();
+
+        $filtered = (clone $base)
+            ->selectRaw('sh.id')
+            ->when($search, function($q) use ($search){
+                $like = '%'.$search.'%';
+                $q->where(function($w) use ($like){
+                    $w->where('sh.code','like',$like)
+                      ->orWhere('sh.container_no','like',$like)
+                      ->orWhere('sh.pl_no','like',$like)
+                      ->orWhere('s.name','like',$like);
+                });
+            })
+            ->when($status, fn($q)=> $q->where('sh.status', $status))
+            ->when($dateFrom, fn($q)=> $q->whereDate('sh.etd','>=',$dateFrom))
+            ->when($dateTo, fn($q)=> $q->whereDate('sh.etd','<=',$dateTo));
+        $recordsFiltered = $filtered->get()->count();
+
+        $dataQuery = (clone $base)
+            ->selectRaw('sh.id, sh.code, sh.container_no, sh.pl_no, sh.etd, sh.eta, sh.status, s.name as supplier')
+            ->selectRaw('COUNT(DISTINCT si.id) as items_count')
+            ->selectRaw('COALESCE(SUM(si.koli_expected),0) as koli_expected_total')
+            ->when($search, function($q) use ($search){
+                $like = '%'.$search.'%';
+                $q->where(function($w) use ($like){
+                    $w->where('sh.code','like',$like)
+                      ->orWhere('sh.container_no','like',$like)
+                      ->orWhere('sh.pl_no','like',$like)
+                      ->orWhere('s.name','like',$like);
+                });
+            })
+            ->when($status, fn($q)=> $q->where('sh.status', $status))
+            ->when($dateFrom, fn($q)=> $q->whereDate('sh.etd','>=',$dateFrom))
+            ->when($dateTo, fn($q)=> $q->whereDate('sh.etd','<=',$dateTo));
+
+        // Ordering
+        $orderReq = $request->input('order', []);
+        $columnsReq = $request->input('columns', []);
+        $columnsMap = [
+            'id' => 'sh.id',
+            'code' => 'sh.code',
+            'supplier' => 'supplier',
+            'container_no' => 'sh.container_no',
+            'pl_no' => 'sh.pl_no',
+            'etd' => 'sh.etd',
+            'eta' => 'sh.eta',
+            'status' => 'sh.status',
+            'items_count' => 'items_count',
+            'koli_expected_total' => 'koli_expected_total',
+        ];
+        foreach ($orderReq as $ord) {
+            $idx = (int) ($ord['column'] ?? 0);
+            $dir = ($ord['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+            $colData = (string) data_get($columnsReq, $idx.'.data', 'sh.id');
+            $col = $columnsMap[$colData] ?? 'sh.id';
+            $dataQuery->orderByRaw("$col $dir");
+        }
+        if (empty($orderReq)) {
+            $dataQuery->orderBy('sh.id','desc');
+        }
+
+        $rows = $dataQuery->skip($start)->take($length)->get()->map(function($r){
+            return [
+                'id' => $r->id,
+                'code' => $r->code,
+                'supplier' => $r->supplier,
+                'container_no' => $r->container_no,
+                'pl_no' => $r->pl_no,
+                'etd' => $r->etd ? \Carbon\Carbon::parse($r->etd)->format('Y-m-d') : null,
+                'eta' => $r->eta ? \Carbon\Carbon::parse($r->eta)->format('Y-m-d') : null,
+                'status' => $r->status,
+                'items_count' => (int) $r->items_count,
+                'koli_expected_total' => $r->koli_expected_total,
+            ];
+        });
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $rows,
+        ]);
     }
 
     public function create()
     {
         $suppliers = Supplier::orderBy('name')->get();
         $items = Item::orderBy('name')->get();
-        return view('admin.procurement.shipments.create', compact('suppliers', 'items'));
+        $code = 'SH-'.now()->format('ymd').'-'.strtoupper(Str::random(4));
+        return view('admin.procurement.shipments.create', compact('suppliers', 'items', 'code'));
     }
 
     public function store(Request $request)
@@ -63,10 +140,16 @@ class ShipmentController extends Controller
             'items.*.koli_expected' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated, $request) {
+            $code = $request->input('code');
+            if (!$code) { $code = 'SH-'.now()->format('ymd').'-'.strtoupper(Str::random(4)); }
+            while (\App\Models\Shipment::where('code', $code)->exists()) {
+                $code = 'SH-'.now()->format('ymd').'-'.strtoupper(Str::random(4));
+            }
+
             $shipment = Shipment::create([
                 'supplier_id' => $validated['supplier_id'] ?? null,
-                'code' => 'SH-'.now()->format('ymd').'-'.strtoupper(Str::random(4)),
+                'code' => $code,
                 'container_no' => $validated['container_no'] ?? null,
                 'pl_no' => $validated['pl_no'] ?? null,
                 'etd' => $validated['etd'] ?? null,

@@ -22,7 +22,8 @@
                     <div class="row g-5 mb-8">
                         <div class="col-md-3">
                             <label class="form-label">Code</label>
-                            <input type="text" class="form-control" value="Akan dibuat saat simpan" disabled readonly />
+                            <input type="text" class="form-control" value="{{ $code }}" disabled readonly />
+                            <input type="hidden" name="code" value="{{ $code }}" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Supplier</label>
@@ -43,12 +44,12 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">ETD</label>
-                            <input type="date" name="etd" value="{{ old('etd') }}" class="form-control" />
+                            <input type="text" name="etd" value="{{ old('etd') }}" class="form-control js-fp-date" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">ETA</label>
-                            <input type="date" name="eta" value="{{ old('eta') }}" class="form-control" />
-                        </div>
+                            <input type="text" name="eta" value="{{ old('eta') }}" class="form-control js-fp-date" />
+                            </div>
                         <div class="col-md-3">
                             <label class="form-label">Status</label>
                             <select name="status" class="form-select">
@@ -147,4 +148,15 @@ document.addEventListener('DOMContentLoaded', function(){
     addRow();
 });
 </script>
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+@endpush
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        flatpickr('.js-fp-date', { dateFormat: 'Y-m-d' });
+    });
+</script>
+@endpush
 @endsection

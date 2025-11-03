@@ -44,11 +44,11 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">ETD</label>
-                            <input type="date" name="etd" value="{{ old('etd', optional($shipment->etd)->format('Y-m-d')) }}" class="form-control" />
+                            <input type="text" name="etd" value="{{ old('etd', optional($shipment->etd)->format('Y-m-d')) }}" class="form-control js-fp-date" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">ETA</label>
-                            <input type="date" name="eta" value="{{ old('eta', optional($shipment->eta)->format('Y-m-d')) }}" class="form-control" />
+                            <input type="text" name="eta" value="{{ old('eta', optional($shipment->eta)->format('Y-m-d')) }}" class="form-control js-fp-date" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Status</label>
@@ -161,4 +161,15 @@ document.addEventListener('DOMContentLoaded', function(){
     if (preset.length) preset.forEach(addRow); else addRow();
 });
 </script>
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+@endpush
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        flatpickr('.js-fp-date', { dateFormat: 'Y-m-d' });
+    });
+</script>
+@endpush
 @endsection

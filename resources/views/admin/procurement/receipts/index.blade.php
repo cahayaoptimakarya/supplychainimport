@@ -40,11 +40,11 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Received From</label>
-                        <input type="date" id="filter_from" class="form-control" />
+                        <input type="text" id="filter_from" class="form-control js-fp-date" />
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Received To</label>
-                        <input type="date" id="filter_to" class="form-control" />
+                        <input type="text" id="filter_to" class="form-control js-fp-date" />
                     </div>
                     <div class="col-md-3">
                         <button id="btn_reset_filters" class="btn btn-light">Reset Filters</button>
@@ -91,9 +91,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const delTpl  = '{{ route('admin.procurement.receipts.destroy', ':id') }}';
     const table = $('#rcp_table').DataTable({
         processing: true,
-        serverSide: false,
+        serverSide: true,
+        searchDelay: 300,
         ajax: {
             url: dataUrl,
+            type: 'GET',
+            data: function(d){
+                d.status = document.getElementById('filter_status').value;
+                d.date_from = document.getElementById('filter_from').value;
+                d.date_to = document.getElementById('filter_to').value;
+            },
             dataSrc: 'data',
             error: function(xhr){
                 console.error('Receipts AJAX error:', xhr.responseText);
@@ -138,31 +145,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const toInput = document.getElementById('filter_to');
     const resetBtn = document.getElementById('btn_reset_filters');
 
-    statusSel.addEventListener('change', function(){
-        table.column(5).search(this.value).draw(); // status column index after adding Code column
-    });
-    function withinDate(d, from, to){
-        if (!d) return true;
-        if (from && d < from) return false;
-        if (to && d > to) return false;
-        return true;
-    }
-    function applyDateFilter(){
-        const from = fromInput.value; const to = toInput.value;
-        table.rows().every(function(){
-            const data = this.data(); const d = (data.received_at||'').substring(0,10);
-            const show = withinDate(d, from, to);
-            $(this.node()).toggle(show);
-        });
-    }
+    statusSel.addEventListener('change', function(){ table.ajax.reload(); });
+    function applyDateFilter(){ table.ajax.reload(); }
     fromInput.addEventListener('change', applyDateFilter);
     toInput.addEventListener('change', applyDateFilter);
     resetBtn.addEventListener('click', function(){
         statusSel.value=''; fromInput.value=''; toInput.value='';
-        table.search('').columns().search('');
+        const topSearch = document.getElementById('global_search');
+        if (topSearch) topSearch.value='';
+        table.search('');
         table.ajax.reload();
     });
+
+    // Hook topbar global search
+    (function(){
+        const topSearch = document.getElementById('global_search');
+        if (!topSearch) return;
+        let tmr; const run = (q)=> table.search(q).draw();
+        topSearch.addEventListener('input', function(){
+            clearTimeout(tmr); const q = this.value || '';
+            tmr = setTimeout(()=> run(q), 200);
+        });
+    })();
 });
 </script>
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+@endpush
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    flatpickr('.js-fp-date', { dateFormat: 'Y-m-d' });
+});
+</script>
+@endpush
 @endpush
 @endsection

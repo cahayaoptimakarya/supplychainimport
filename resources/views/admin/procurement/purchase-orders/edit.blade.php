@@ -37,7 +37,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label required">Tanggal</label>
-                            <input type="date" name="order_date" value="{{ old('order_date', optional($po->order_date)->format('Y-m-d')) }}" class="form-control @error('order_date') is-invalid @enderror" required />
+                            <input type="text" name="order_date" value="{{ old('order_date', optional($po->order_date)->format('Y-m-d')) }}" class="form-control js-fp-date @error('order_date') is-invalid @enderror" required />
                             @error('order_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-5">
@@ -154,4 +154,15 @@ document.addEventListener('DOMContentLoaded', function(){
     if (preset.length) preset.forEach(addRow); else addRow();
 });
 </script>
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+@endpush
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        flatpickr('.js-fp-date', { dateFormat: 'Y-m-d' });
+    });
+</script>
+@endpush
 @endsection

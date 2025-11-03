@@ -22,7 +22,8 @@
                     <div class="row g-5 mb-8">
                         <div class="col-md-3">
                             <label class="form-label">Code</label>
-                            <input type="text" class="form-control" value="Akan dibuat saat simpan" disabled readonly />
+                            <input type="text" class="form-control" value="{{ $code }}" disabled readonly />
+                            <input type="hidden" name="code" value="{{ $code }}" />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label required">Shipment</label>
@@ -55,7 +56,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label required">Received At</label>
-                            <input type="datetime-local" name="received_at" value="{{ old('received_at', now()->format('Y-m-d\TH:i')) }}" class="form-control @error('received_at') is-invalid @enderror" required />
+                            <input type="text" name="received_at" value="{{ old('received_at', now()->format('Y-m-d H:i')) }}" class="form-control js-fp-dt @error('received_at') is-invalid @enderror" required />
                             @error('received_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
@@ -162,4 +163,15 @@ document.addEventListener('DOMContentLoaded', function(){
     populateFromShipment();
 });
 </script>
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+@endpush
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        flatpickr('.js-fp-dt', { enableTime: true, dateFormat: 'Y-m-d H:i' });
+    });
+</script>
+@endpush
 @endsection
