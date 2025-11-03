@@ -62,7 +62,7 @@ class PurchaseOrderController extends Controller
             'ref_no' => ['nullable', 'string', 'max:255'],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.item_id' => ['required', 'exists:items,id'],
-            'lines.*.qty_ordered' => ['required', 'numeric', 'min:0.0001'],
+            'lines.*.qty_ordered' => ['required', 'integer', 'min:1'],
             'lines.*.koli_ordered' => ['nullable', 'numeric', 'min:0'],
             'lines.*.notes' => ['nullable', 'string'],
         ]);
@@ -110,7 +110,7 @@ class PurchaseOrderController extends Controller
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.id' => ['nullable', 'integer'],
             'lines.*.item_id' => ['required', 'exists:items,id'],
-            'lines.*.qty_ordered' => ['required', 'numeric', 'min:0.0001'],
+            'lines.*.qty_ordered' => ['required', 'integer', 'min:1'],
             'lines.*.koli_ordered' => ['nullable', 'numeric', 'min:0'],
             'lines.*.notes' => ['nullable', 'string'],
         ]);
@@ -156,5 +156,25 @@ class PurchaseOrderController extends Controller
     {
         $purchase_order->delete();
         return redirect()->route('admin.procurement.purchase-orders.index')->with('success', 'PO berhasil dihapus');
+    }
+
+    public function show(PurchaseOrder $purchase_order)
+    {
+        $purchase_order->load(['supplier', 'lines.item']);
+        $ordered = (float) $purchase_order->lines->sum('qty_ordered');
+        $fulfilled = 0.0;
+        foreach ($purchase_order->lines as $l) { $fulfilled += (float) $l->fulfilled_qty; }
+        $open = max(0.0, $ordered - $fulfilled);
+        $derivedStatus = $open <= 0 ? 'fulfilled' : ($fulfilled > 0 ? 'partial' : 'open');
+
+        return view('admin.procurement.purchase-orders.show', [
+            'po' => $purchase_order,
+            'totals' => [
+                'qty_ordered' => $ordered,
+                'qty_fulfilled' => $fulfilled,
+                'qty_open' => $open,
+                'status' => $derivedStatus,
+            ],
+        ]);
     }
 }

@@ -29,7 +29,16 @@
                             <select id="shipment_id" name="shipment_id" class="form-select @error('shipment_id') is-invalid @enderror" required>
                                 <option value="">- pilih shipment -</option>
                                 @foreach($shipments as $s)
-                                    <option value="{{ $s->id }}" data-items='@json($s->items->map(fn($it)=>["item_id"=>$it->item_id,"qty_expected"=>$it->qty_expected, "koli_expected"=>$it->koli_expected]))'>#{{ $s->id }} {{ $s->container_no ? '(' . $s->container_no . ')' : '' }}</option>
+                                    @php
+                                        $itemsJson = $s->items->map(function($it){
+                                            return [
+                                                'item_id' => $it->item_id,
+                                                'qty_expected' => $it->qty_expected,
+                                                'koli_expected' => $it->koli_expected,
+                                            ];
+                                        })->values()->toJson();
+                                    @endphp
+                                    <option value="{{ $s->id }}" data-items='{{ $itemsJson }}'>#{{ $s->id }} {{ $s->container_no ? '(' . $s->container_no . ')' : '' }}</option>
                                 @endforeach
                             </select>
                             @error('shipment_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -90,7 +99,7 @@
             </select>
         </td>
         <td>
-            <input type="number" step="0.0001" min="0" name="items[__i__][qty_received]" class="form-control" required />
+            <input type="number" step="1" min="0" name="items[__i__][qty_received]" class="form-control" required />
         </td>
         <td>
             <input type="number" step="0.0001" min="0" name="items[__i__][koli_received]" class="form-control" />
@@ -106,14 +115,31 @@ document.addEventListener('DOMContentLoaded', function(){
     const tbody = document.querySelector('#items_table tbody');
     const tpl = document.getElementById('tpl_item_row').innerHTML;
     let idx = 0;
+    function attachIntegerGuard(input){
+        const guard = function(){
+            const val = (input.value || '').toString();
+            if (val === '') return;
+            if (!/^\d+$/.test(val)){
+                if (window.Swal) { Swal.fire({icon:'error', title:'Qty harus bilangan bulat', text:'Tidak boleh menggunakan desimal.'}); }
+                else { alert('Qty harus bilangan bulat.'); }
+                input.value = (val.split(/[\.,]/)[0] || '').replace(/\D/g,'');
+                input.focus();
+            }
+        };
+        input.addEventListener('input', guard);
+        input.addEventListener('blur', guard);
+    }
     function addRow(data){
         let html = tpl.replaceAll('__i__', idx++);
         const tr = document.createElement('tr');
         tr.innerHTML = html;
         tbody.appendChild(tr);
+        attachIntegerGuard(tr.querySelector('input[name$="[qty_received]"]'));
         if (data) {
             tr.querySelector('select').value = data.item_id || '';
-            tr.querySelector('input[name$="[qty_received]"]').value = data.qty_received || '';
+            const qi = tr.querySelector('input[name$="[qty_received]"]');
+            qi.value = (data.qty_received !== undefined && data.qty_received !== null && data.qty_received !== '')
+                ? String(parseInt(data.qty_received, 10)) : '';
             const kr = tr.querySelector('input[name$="[koli_received]"]');
             if (kr) kr.value = data.koli_received || '';
         }
@@ -128,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function(){
         try {
             const items = JSON.parse(opt.dataset.items);
             if (Array.isArray(items) && items.length) {
-                items.forEach(it => addRow({ item_id: it.item_id, qty_received: it.qty_expected, koli_received: it.koli_expected || 0 }));
+                items.forEach(it => addRow({ item_id: it.item_id, qty_received: (it.qty_expected ?? 0), koli_received: it.koli_expected || 0 }));
             } else { addRow(); }
         } catch(e) { addRow(); }
     }

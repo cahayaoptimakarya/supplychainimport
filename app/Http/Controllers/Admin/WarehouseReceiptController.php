@@ -59,7 +59,7 @@ class WarehouseReceiptController extends Controller
             'received_at' => ['required', 'date'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.item_id' => ['required', 'exists:items,id'],
-            'items.*.qty_received' => ['required', 'numeric', 'min:0'],
+            'items.*.qty_received' => ['required', 'integer', 'min:0'],
             'items.*.koli_received' => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -104,7 +104,7 @@ class WarehouseReceiptController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['nullable','integer'],
             'items.*.item_id' => ['required', 'exists:items,id'],
-            'items.*.qty_received' => ['required', 'numeric', 'min:0'],
+            'items.*.qty_received' => ['required', 'integer', 'min:0'],
             'items.*.koli_received' => ['nullable', 'numeric', 'min:0'],
         ]);
 

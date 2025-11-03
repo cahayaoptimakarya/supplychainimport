@@ -87,7 +87,7 @@
             </select>
         </td>
         <td>
-            <input type="number" step="0.0001" min="0.0001" name="lines[__i__][qty_ordered]" class="form-control" required />
+            <input type="number" step="1" min="1" name="lines[__i__][qty_ordered]" class="form-control" required />
         </td>
         <td>
             <input type="number" step="0.0001" min="0" name="lines[__i__][koli_ordered]" class="form-control" />
@@ -106,15 +106,32 @@ document.addEventListener('DOMContentLoaded', function(){
     const tbody = document.querySelector('#lines_table tbody');
     const tpl = document.getElementById('tpl_line_row').innerHTML;
     let idx = 0;
+    function attachIntegerGuard(input){
+        const guard = function(){
+            const val = (input.value || '').toString();
+            if (val === '') return;
+            if (!/^\d+$/.test(val)){
+                if (window.Swal) { Swal.fire({icon:'error', title:'Qty harus bilangan bulat', text:'Tidak boleh menggunakan desimal.'}); }
+                else { alert('Qty harus bilangan bulat.'); }
+                input.value = (val.split(/[\.,]/)[0] || '').replace(/\D/g,'');
+                input.focus();
+            }
+        };
+        input.addEventListener('input', guard);
+        input.addEventListener('blur', guard);
+    }
     function addRow(data){
         let html = tpl.replaceAll('__i__', idx++);
         const tr = document.createElement('tr');
         tr.innerHTML = html;
         tbody.appendChild(tr);
+        attachIntegerGuard(tr.querySelector('input[name$="[qty_ordered]"]'));
         if (data) {
             tr.querySelector('input[type=hidden]').value = data.id || '';
             tr.querySelector('select').value = data.item_id || '';
-            tr.querySelector('input[name$="[qty_ordered]"]').value = data.qty_ordered || '';
+            const qi = tr.querySelector('input[name$="[qty_ordered]"]');
+            qi.value = (data.qty_ordered !== undefined && data.qty_ordered !== null && data.qty_ordered !== '')
+                ? String(parseInt(data.qty_ordered, 10)) : '';
             tr.querySelector('input[name$="[notes]"]').value = data.notes || '';
             const koliInput = tr.querySelector('input[name$="[koli_ordered]"]');
             if (koliInput) koliInput.value = data.koli_ordered || '';
@@ -122,7 +139,18 @@ document.addEventListener('DOMContentLoaded', function(){
         tr.querySelector('.btn-del-line').addEventListener('click', ()=> tr.remove());
     }
     document.getElementById('btn_add_line').addEventListener('click', ()=> addRow());
-    const preset = @json($po->lines->map(fn($l)=> ['id'=>$l->id,'item_id'=>$l->item_id,'qty_ordered'=>$l->qty_ordered,'notes'=>$l->notes]));
+    @php
+        $preset = $po->lines->map(function($l){
+            return [
+                'id' => $l->id,
+                'item_id' => $l->item_id,
+                'qty_ordered' => (int) $l->qty_ordered,
+                'koli_ordered' => $l->koli_ordered,
+                'notes' => $l->notes,
+            ];
+        })->values();
+    @endphp
+    const preset = @json($preset);
     if (preset.length) preset.forEach(addRow); else addRow();
 });
 </script>

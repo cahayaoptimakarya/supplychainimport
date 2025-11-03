@@ -97,7 +97,7 @@
             </select>
         </td>
         <td>
-            <input type="number" step="0.0001" min="0.0001" name="items[__i__][qty_expected]" class="form-control" required />
+            <input type="number" step="1" min="1" name="items[__i__][qty_expected]" class="form-control" required />
         </td>
         <td>
             <input type="number" step="0.0001" min="0" name="items[__i__][koli_expected]" class="form-control" />
@@ -113,14 +113,31 @@ document.addEventListener('DOMContentLoaded', function(){
     const tbody = document.querySelector('#items_table tbody');
     const tpl = document.getElementById('tpl_item_row').innerHTML;
     let idx = 0;
+    function attachIntegerGuard(input){
+        const guard = function(){
+            const val = (input.value || '').toString();
+            if (val === '') return;
+            if (!/^\d+$/.test(val)){
+                if (window.Swal) { Swal.fire({icon:'error', title:'Qty harus bilangan bulat', text:'Tidak boleh menggunakan desimal.'}); }
+                else { alert('Qty harus bilangan bulat.'); }
+                input.value = (val.split(/[\.,]/)[0] || '').replace(/\D/g,'');
+                input.focus();
+            }
+        };
+        input.addEventListener('input', guard);
+        input.addEventListener('blur', guard);
+    }
     function addRow(data){
         let html = tpl.replaceAll('__i__', idx++);
         const tr = document.createElement('tr');
         tr.innerHTML = html;
         tbody.appendChild(tr);
+        attachIntegerGuard(tr.querySelector('input[name$="[qty_expected]"]'));
         if (data) {
             tr.querySelector('select').value = data.item_id || '';
-            tr.querySelector('input[name$="[qty_expected]"]').value = data.qty_expected || '';
+            const qi = tr.querySelector('input[name$="[qty_expected]"]');
+            qi.value = (data.qty_expected !== undefined && data.qty_expected !== null && data.qty_expected !== '')
+                ? String(parseInt(data.qty_expected, 10)) : '';
             const ke = tr.querySelector('input[name$="[koli_expected]"]');
             if (ke) ke.value = data.koli_expected || '';
         }

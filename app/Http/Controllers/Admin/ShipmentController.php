@@ -59,7 +59,7 @@ class ShipmentController extends Controller
             'status' => ['required', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.item_id' => ['required', 'exists:items,id'],
-            'items.*.qty_expected' => ['required', 'numeric', 'min:0.0001'],
+            'items.*.qty_expected' => ['required', 'integer', 'min:1'],
             'items.*.koli_expected' => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -106,7 +106,7 @@ class ShipmentController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['nullable', 'integer'],
             'items.*.item_id' => ['required', 'exists:items,id'],
-            'items.*.qty_expected' => ['required', 'numeric', 'min:0.0001'],
+            'items.*.qty_expected' => ['required', 'integer', 'min:1'],
             'items.*.koli_expected' => ['nullable', 'numeric', 'min:0'],
         ]);
 

@@ -85,7 +85,7 @@
             </select>
         </td>
         <td>
-            <input type="number" step="0.0001" min="0.0001" name="lines[__i__][qty_ordered]" class="form-control" required />
+            <input type="number" step="1" min="1" name="lines[__i__][qty_ordered]" class="form-control" required />
         </td>
         <td>
             <input type="number" step="0.0001" min="0" name="lines[__i__][koli_ordered]" class="form-control" />
@@ -104,14 +104,31 @@ document.addEventListener('DOMContentLoaded', function(){
     const tbody = document.querySelector('#lines_table tbody');
     const tpl = document.getElementById('tpl_line_row').innerHTML;
     let idx = 0;
+    function attachIntegerGuard(input){
+        const guard = function(){
+            const val = (input.value || '').toString();
+            if (val === '') return;
+            if (!/^\d+$/.test(val)){
+                if (window.Swal) { Swal.fire({icon:'error', title:'Qty harus bilangan bulat', text:'Tidak boleh menggunakan desimal.'}); }
+                else { alert('Qty harus bilangan bulat.'); }
+                input.value = (val.split(/[\.,]/)[0] || '').replace(/\D/g,'');
+                input.focus();
+            }
+        };
+        input.addEventListener('input', guard);
+        input.addEventListener('blur', guard);
+    }
     function addRow(data){
         let html = tpl.replaceAll('__i__', idx++);
         const tr = document.createElement('tr');
         tr.innerHTML = html;
         tbody.appendChild(tr);
+        attachIntegerGuard(tr.querySelector('input[name$="[qty_ordered]"]'));
         if (data) {
             tr.querySelector('select').value = data.item_id || '';
-            tr.querySelector('input[name$="[qty_ordered]"]').value = data.qty_ordered || '';
+            const qi = tr.querySelector('input[name$="[qty_ordered]"]');
+            qi.value = (data.qty_ordered !== undefined && data.qty_ordered !== null && data.qty_ordered !== '')
+                ? String(parseInt(data.qty_ordered, 10)) : '';
             tr.querySelector('input[name$="[notes]"]').value = data.notes || '';
         }
         tr.querySelector('.btn-del-line').addEventListener('click', ()=> tr.remove());

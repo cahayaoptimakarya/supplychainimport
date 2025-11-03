@@ -90,6 +90,7 @@
 @php
     $canUpdate = Perm::can(auth()->user(), 'admin.procurement.purchase-orders.index', 'update');
     $canDelete = Perm::can(auth()->user(), 'admin.procurement.purchase-orders.index', 'delete');
+    $canView = Perm::can(auth()->user(), 'admin.procurement.purchase-orders.index', 'view');
 @endphp
 @push('scripts')
 <link href="{{ asset('metronic/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
@@ -98,9 +99,11 @@
 document.addEventListener('DOMContentLoaded', function() {
     const dataUrl = '{{ route('admin.procurement.purchase-orders.data') }}';
     const editTpl = '{{ route('admin.procurement.purchase-orders.edit', ':id') }}';
+    const viewTpl = '{{ route('admin.procurement.purchase-orders.show', ':id') }}';
     const delTpl  = '{{ route('admin.procurement.purchase-orders.destroy', ':id') }}';
     const canUpdate = {{ $canUpdate ? 'true' : 'false' }};
     const canDelete = {{ $canDelete ? 'true' : 'false' }};
+    const canView = {{ $canView ? 'true' : 'false' }};
     const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 4 });
     const table = $('#po_table').DataTable({
         processing: true,
@@ -138,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 data: 'id', className: 'text-end', orderable: false, searchable: false,
                 render: function(id, type, row){
                     let html='';
+                    if (canView) html += `<a href=\"${viewTpl.replace(':id', id)}\" class=\"btn btn-light-info btn-sm me-2\">View</a>`;
                     if (canUpdate) html += `<a href=\"${editTpl.replace(':id', id)}\" class=\"btn btn-light-primary btn-sm me-2\">Edit</a>`;
                     if (canDelete) html += `<form method=\"POST\" action=\"${delTpl.replace(':id', id)}\" style=\"display:inline\">@csrf @method('DELETE')<button class=\"btn btn-light-danger btn-sm\" onclick=\"return confirm('Hapus PO ini?')\">Hapus</button></form>`;
                     return html || '-';
