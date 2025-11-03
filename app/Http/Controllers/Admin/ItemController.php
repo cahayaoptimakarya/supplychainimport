@@ -47,7 +47,7 @@ class ItemController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['required', 'string', 'max:255', 'unique:items,sku'],
-            'cnt' => ['required', 'string', 'max:255'],
+            'cnt' => ['nullable', 'string', 'max:255'],
             'category_id' => ['required', 'exists:categories,id'],
             'uom_id' => ['required', 'exists:uoms,id'],
             'description' => ['nullable', 'string'],
@@ -72,7 +72,7 @@ class ItemController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['required', 'string', 'max:255', Rule::unique('items', 'sku')->ignore($item->id)],
-            'cnt' => ['required', 'string', 'max:255'],
+            'cnt' => ['nullable', 'string', 'max:255'],
             'category_id' => ['required', 'exists:categories,id'],
             'uom_id' => ['required', 'exists:uoms,id'],
             'description' => ['nullable', 'string'],

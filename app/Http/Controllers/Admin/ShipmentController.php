@@ -9,6 +9,7 @@ use App\Models\ShipmentItem;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ShipmentController extends Controller
 {
@@ -26,6 +27,7 @@ class ShipmentController extends Controller
                 $koliExpected = (float) $s->items->sum('koli_expected');
                 return [
                     'id' => $s->id,
+                    'code' => $s->code,
                     'supplier' => optional($s->supplier)->name,
                     'container_no' => $s->container_no,
                     'pl_no' => $s->pl_no,
@@ -64,6 +66,7 @@ class ShipmentController extends Controller
         DB::transaction(function () use ($validated) {
             $shipment = Shipment::create([
                 'supplier_id' => $validated['supplier_id'] ?? null,
+                'code' => 'SH-'.now()->format('ymd').'-'.strtoupper(Str::random(4)),
                 'container_no' => $validated['container_no'] ?? null,
                 'pl_no' => $validated['pl_no'] ?? null,
                 'etd' => $validated['etd'] ?? null,
@@ -75,7 +78,7 @@ class ShipmentController extends Controller
                     'shipment_id' => $shipment->id,
                     'item_id' => $row['item_id'],
                     'qty_expected' => $row['qty_expected'],
-                    'koli_expected' => $row['koli_expected'] ?? 0,
+                    'koli_expected' => $row['koli_expected'] ?? null,
                 ]);
             }
         });
@@ -124,7 +127,7 @@ class ShipmentController extends Controller
                     $si->update([
                         'item_id' => $row['item_id'],
                         'qty_expected' => $row['qty_expected'],
-                        'koli_expected' => $row['koli_expected'] ?? 0,
+                        'koli_expected' => $row['koli_expected'] ?? null,
                     ]);
                     $keep[] = $si->id;
                 } else {
@@ -132,7 +135,7 @@ class ShipmentController extends Controller
                         'shipment_id' => $shipment->id,
                         'item_id' => $row['item_id'],
                         'qty_expected' => $row['qty_expected'],
-                        'koli_expected' => $row['koli_expected'] ?? 0,
+                        'koli_expected' => $row['koli_expected'] ?? null,
                     ]);
                     $keep[] = $si->id;
                 }

@@ -21,6 +21,10 @@
                     @csrf
                     @method('PUT')
                     <div class="row g-5 mb-8">
+                        <div class="col-md-3">
+                            <label class="form-label">Code</label>
+                            <input type="text" class="form-control" value="{{ $shipment->code }}" disabled readonly />
+                        </div>
                         <div class="col-md-4">
                             <label class="form-label">Supplier</label>
                             <select name="supplier_id" class="form-select">

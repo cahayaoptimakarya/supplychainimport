@@ -21,6 +21,10 @@
                     @csrf
                     @method('PUT')
                     <div class="row mb-10">
+                        <div class="col-md-3">
+                            <label class="form-label">Code</label>
+                            <input type="text" class="form-control" value="{{ $po->code }}" disabled readonly />
+                        </div>
                         <div class="col-md-4">
                             <label class="form-label required">Supplier</label>
                             <select name="supplier_id" class="form-select @error('supplier_id') is-invalid @enderror" required>

@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('purchase_order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('item_id')->constrained('items')->cascadeOnDelete();
             $table->decimal('qty_ordered', 18, 4);
+            $table->decimal('koli_ordered', 18, 4)->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });
@@ -23,4 +24,3 @@ return new class extends Migration
         Schema::dropIfExists('po_lines');
     }
 };
-

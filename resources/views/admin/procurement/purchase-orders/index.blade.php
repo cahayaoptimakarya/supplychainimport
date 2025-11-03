@@ -29,14 +29,38 @@
 
         <div class="card">
             <div class="card-body py-6">
+                <div class="row g-3 mb-4 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Status</label>
+                        <select id="filter_status" class="form-select">
+                            <option value="">All</option>
+                            <option value="open">Open</option>
+                            <option value="partial">Partial</option>
+                            <option value="fulfilled">Fulfilled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Tgl PO From</label>
+                        <input type="date" id="filter_from" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Tgl PO To</label>
+                        <input type="date" id="filter_to" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <button id="btn_reset_filters" class="btn btn-light">Reset Filters</button>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table align-middle table-row-dashed fs-6 gy-5" id="po_table">
                         <thead>
                         <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
                             <th>ID</th>
+                            <th>Code</th>
                             <th>Ref</th>
                             <th>Supplier</th>
                             <th>Tgl PO</th>
+                            <th>Lines</th>
                             <th>Qty Ordered</th>
                             <th>Koli Ordered</th>
                             <th>Qty Fulfilled</th>
@@ -46,6 +70,16 @@
                         </tr>
                         </thead>
                         <tbody></tbody>
+                        <tfoot>
+                        <tr class="fw-bold">
+                            <th colspan="6" class="text-end">Totals:</th>
+                            <th id="ft_qty_ordered">0</th>
+                            <th id="ft_koli_ordered">0</th>
+                            <th id="ft_qty_fulfilled">0</th>
+                            <th id="ft_qty_open">0</th>
+                            <th colspan="2"></th>
+                        </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -57,6 +91,9 @@
     $canUpdate = Perm::can(auth()->user(), 'admin.procurement.purchase-orders.index', 'update');
     $canDelete = Perm::can(auth()->user(), 'admin.procurement.purchase-orders.index', 'delete');
 @endphp
+@push('scripts')
+<link href="{{ asset('metronic/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
+<script src="{{ asset('metronic/plugins/custom/datatables/datatables.bundle.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const dataUrl = '{{ route('admin.procurement.purchase-orders.data') }}';
@@ -64,20 +101,39 @@ document.addEventListener('DOMContentLoaded', function() {
     const delTpl  = '{{ route('admin.procurement.purchase-orders.destroy', ':id') }}';
     const canUpdate = {{ $canUpdate ? 'true' : 'false' }};
     const canDelete = {{ $canDelete ? 'true' : 'false' }};
-    $('#po_table').DataTable({
+    const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 4 });
+    const table = $('#po_table').DataTable({
         processing: true,
         serverSide: false,
-        ajax: { url: dataUrl, dataSrc: 'data' },
+        ajax: {
+            url: dataUrl,
+            dataSrc: 'data',
+            error: function(xhr){
+                console.error('PO AJAX error:', xhr.responseText);
+                alert('Gagal memuat data Purchase Orders');
+            }
+        },
         columns: [
             { data: 'id' },
+            { data: 'code', render: function(val, t, row){
+                const href = editTpl.replace(':id', row.id);
+                const text = val || '-';
+                return `<a href="${href}" class="text-primary text-decoration-underline">${text}</a>`;
+            }},
             { data: 'ref_no', defaultContent: '-' },
             { data: 'supplier', defaultContent: '-' },
             { data: 'order_date' },
-            { data: 'qty_ordered' },
-            { data: 'koli_ordered', defaultContent: 0 },
-            { data: 'qty_fulfilled' },
-            { data: 'qty_open' },
-            { data: 'status' },
+            { data: 'lines_count', defaultContent: 0 },
+            { data: 'qty_ordered', render: v => nf.format(v) },
+            { data: 'koli_ordered', defaultContent: 0, render: v => nf.format(v) },
+            { data: 'qty_fulfilled', render: v => nf.format(v) },
+            { data: 'qty_open', render: v => nf.format(v) },
+            { data: 'status', render: function(val){
+                const map = { open: 'warning', partial: 'info', fulfilled: 'success' };
+                const cls = map[val] || 'secondary';
+                const label = (val||'-').toUpperCase();
+                return `<span class="badge badge-light-${cls}">${label}</span>`;
+            }},
             {
                 data: 'id', className: 'text-end', orderable: false, searchable: false,
                 render: function(id, type, row){
@@ -87,8 +143,55 @@ document.addEventListener('DOMContentLoaded', function() {
                     return html || '-';
                 }
             }
-        ]
+        ],
+        footerCallback: function(row, data){
+            let qtyOrder = 0, koliOrder = 0, qtyFulfill = 0, qtyOpen = 0;
+            data.forEach(r => {
+                qtyOrder += parseFloat(r.qty_ordered || 0);
+                koliOrder += parseFloat(r.koli_ordered || 0);
+                qtyFulfill += parseFloat(r.qty_fulfilled || 0);
+                qtyOpen += parseFloat(r.qty_open || 0);
+            });
+            document.getElementById('ft_qty_ordered').textContent = nf.format(qtyOrder);
+            document.getElementById('ft_koli_ordered').textContent = nf.format(koliOrder);
+            document.getElementById('ft_qty_fulfilled').textContent = nf.format(qtyFulfill);
+            document.getElementById('ft_qty_open').textContent = nf.format(qtyOpen);
+        }
+    });
+
+    // Filters
+    const statusSel = document.getElementById('filter_status');
+    const fromInput = document.getElementById('filter_from');
+    const toInput = document.getElementById('filter_to');
+    const resetBtn = document.getElementById('btn_reset_filters');
+
+    statusSel.addEventListener('change', function(){
+        table.column(10).search(this.value).draw(); // status column index after adding Code column
+    });
+    function withinDate(d, from, to){
+        if (!d) return true;
+        if (from && d < from) return false;
+        if (to && d > to) return false;
+        return true;
+    }
+    function applyDateFilter(){
+        const from = fromInput.value;
+        const to = toInput.value;
+        table.rows().every(function(){
+            const data = this.data();
+            const d = data.order_date || '';
+            const show = withinDate(d, from, to);
+            $(this.node()).toggle(show);
+        });
+    }
+    fromInput.addEventListener('change', applyDateFilter);
+    toInput.addEventListener('change', applyDateFilter);
+    resetBtn.addEventListener('click', function(){
+        statusSel.value=''; fromInput.value=''; toInput.value='';
+        table.search('').columns().search('');
+        table.ajax.reload();
     });
 });
 </script>
+@endpush
 @endsection

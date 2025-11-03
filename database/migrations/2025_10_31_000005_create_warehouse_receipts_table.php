@@ -10,10 +10,11 @@ return new class extends Migration
     {
         Schema::create('warehouse_receipts', function (Blueprint $table) {
             $table->id();
+            $table->string('code')->unique();
             $table->foreignId('shipment_id')->constrained()->cascadeOnDelete();
             $table->foreignId('warehouse_id')->index();
             $table->dateTime('received_at')->nullable();
-            $table->string('status')->default('draft'); // draft, posted
+            $table->enum('status', ['draft','posted'])->default('draft');
             $table->timestamps();
         });
     }

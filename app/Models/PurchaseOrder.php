@@ -11,6 +11,7 @@ class PurchaseOrder extends Model
 
     protected $fillable = [
         'supplier_id',
+        'code',
         'order_date',
         'ref_no',
         'status',
@@ -30,4 +31,3 @@ class PurchaseOrder extends Model
         return $this->hasMany(PoLine::class);
     }
 }
-

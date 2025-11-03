@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('warehouse_receipt_id')->constrained()->cascadeOnDelete();
             $table->foreignId('item_id')->constrained('items')->cascadeOnDelete();
             $table->decimal('qty_received', 18, 4);
+            $table->decimal('koli_received', 18, 4)->nullable();
             $table->timestamps();
         });
     }
@@ -22,4 +23,3 @@ return new class extends Migration
         Schema::dropIfExists('receipt_items');
     }
 };
-

@@ -9,6 +9,7 @@ use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PurchaseOrderController extends Controller
 {
@@ -30,9 +31,11 @@ class PurchaseOrderController extends Controller
                 $open = max(0.0, $ordered - $fulfilled);
                 return [
                     'id' => $po->id,
+                    'code' => $po->code,
                     'ref_no' => $po->ref_no,
                     'supplier' => optional($po->supplier)->name,
                     'order_date' => optional($po->order_date)->format('Y-m-d'),
+                    'lines_count' => $po->lines->count(),
                     'qty_ordered' => $ordered,
                     'koli_ordered' => $koliOrdered,
                     'qty_fulfilled' => $fulfilled,
@@ -67,6 +70,7 @@ class PurchaseOrderController extends Controller
         DB::transaction(function () use ($validated) {
             $po = PurchaseOrder::create([
                 'supplier_id' => $validated['supplier_id'],
+                'code' => 'PO-'.now()->format('ymd').'-'.strtoupper(Str::random(4)),
                 'order_date' => $validated['order_date'],
                 'ref_no' => $validated['ref_no'] ?? null,
                 'status' => 'open',
@@ -76,7 +80,7 @@ class PurchaseOrderController extends Controller
                     'purchase_order_id' => $po->id,
                     'item_id' => $line['item_id'],
                     'qty_ordered' => $line['qty_ordered'],
-                    'koli_ordered' => $line['koli_ordered'] ?? 0,
+                    'koli_ordered' => $line['koli_ordered'] ?? null,
                     'notes' => $line['notes'] ?? null,
                 ]);
             }
@@ -125,7 +129,7 @@ class PurchaseOrderController extends Controller
                     $pl->update([
                         'item_id' => $line['item_id'],
                         'qty_ordered' => $line['qty_ordered'],
-                        'koli_ordered' => $line['koli_ordered'] ?? 0,
+                        'koli_ordered' => $line['koli_ordered'] ?? null,
                         'notes' => $line['notes'] ?? null,
                     ]);
                     $keepIds[] = $pl->id;
@@ -134,7 +138,7 @@ class PurchaseOrderController extends Controller
                         'purchase_order_id' => $purchase_order->id,
                         'item_id' => $line['item_id'],
                         'qty_ordered' => $line['qty_ordered'],
-                        'koli_ordered' => $line['koli_ordered'] ?? 0,
+                        'koli_ordered' => $line['koli_ordered'] ?? null,
                         'notes' => $line['notes'] ?? null,
                     ]);
                     $keepIds[] = $pl->id;

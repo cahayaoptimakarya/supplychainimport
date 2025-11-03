@@ -12,6 +12,7 @@ class WarehouseReceipt extends Model
     protected $fillable = [
         'shipment_id',
         'warehouse_id',
+        'code',
         'received_at',
         'status',
     ];
@@ -35,4 +36,3 @@ class WarehouseReceipt extends Model
         return $this->hasMany(ReceiptItem::class, 'warehouse_receipt_id');
     }
 }
-

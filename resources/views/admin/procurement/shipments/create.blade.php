@@ -20,6 +20,10 @@
                 <form method="POST" action="{{ route('admin.procurement.shipments.store') }}">
                     @csrf
                     <div class="row g-5 mb-8">
+                        <div class="col-md-3">
+                            <label class="form-label">Code</label>
+                            <input type="text" class="form-control" value="Akan dibuat saat simpan" disabled readonly />
+                        </div>
                         <div class="col-md-4">
                             <label class="form-label">Supplier</label>
                             <select name="supplier_id" class="form-select">

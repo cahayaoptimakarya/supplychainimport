@@ -14,15 +14,12 @@ return new class extends Migration
                 $table->string('sku')->after('name')->unique();
             }
         });
-
-        DB::statement("UPDATE items SET cnt = '' WHERE cnt IS NULL");
-        DB::statement('ALTER TABLE items MODIFY cnt VARCHAR(255) NOT NULL');
+        // Keep cnt nullable; no change to cnt constraint in dev phase
     }
 
     public function down(): void
     {
-        // revert cnt to nullable
-        DB::statement('ALTER TABLE items MODIFY cnt VARCHAR(255) NULL');
+        // No change to cnt constraint on down; only drop sku if present
 
         Schema::table('items', function (Blueprint $table) {
             if (Schema::hasColumn('items', 'sku')) {
@@ -32,4 +29,3 @@ return new class extends Migration
         });
     }
 };
-

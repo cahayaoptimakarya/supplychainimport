@@ -1,15 +1,15 @@
 @extends('layouts.admin')
 
-@section('title', 'Create Receipt (GRN)')
+@section('title', 'Edit Receipt (GRN)')
 
-@section('page_title', 'Create Receipt (GRN)')
+@section('page_title', 'Edit Receipt (GRN)')
 
 @section('page_breadcrumbs')
     <span class="text-muted">Home</span>
     <span class="mx-2">-</span>
     <span class="text-muted">Procurement</span>
     <span class="mx-2">-</span>
-    <span class="text-dark">Create Receipt</span>
+    <span class="text-dark">Edit Receipt #{{ $receipt->id }}</span>
 @endsection
 
 @section('content')
@@ -17,19 +17,20 @@
     <div class="container-fluid" id="kt_content_container">
         <div class="card">
             <div class="card-body py-6">
-                <form method="POST" action="{{ route('admin.procurement.receipts.store') }}">
+                <form method="POST" action="{{ route('admin.procurement.receipts.update', $receipt->id) }}">
                     @csrf
+                    @method('PUT')
                     <div class="row g-5 mb-8">
                         <div class="col-md-3">
                             <label class="form-label">Code</label>
-                            <input type="text" class="form-control" value="Akan dibuat saat simpan" disabled readonly />
+                            <input type="text" class="form-control" value="{{ $receipt->code }}" disabled readonly />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label required">Shipment</label>
                             <select id="shipment_id" name="shipment_id" class="form-select @error('shipment_id') is-invalid @enderror" required>
                                 <option value="">- pilih shipment -</option>
                                 @foreach($shipments as $s)
-                                    <option value="{{ $s->id }}" data-items='@json($s->items->map(fn($it)=>["item_id"=>$it->item_id,"qty_expected"=>$it->qty_expected, "koli_expected"=>$it->koli_expected]))'>#{{ $s->id }} {{ $s->container_no ? '(' . $s->container_no . ')' : '' }}</option>
+                                    <option value="{{ $s->id }}" @selected(old('shipment_id', $receipt->shipment_id)==$s->id)>#{{ $s->id }} {{ $s->container_no ? '(' . $s->container_no . ')' : '' }}</option>
                                 @endforeach
                             </select>
                             @error('shipment_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -39,14 +40,14 @@
                             <select name="warehouse_id" class="form-select @error('warehouse_id') is-invalid @enderror" required>
                                 <option value="">- pilih -</option>
                                 @foreach($warehouses as $w)
-                                    <option value="{{ $w->id }}" @selected(old('warehouse_id')==$w->id)>{{ $w->name }}</option>
+                                    <option value="{{ $w->id }}" @selected(old('warehouse_id', $receipt->warehouse_id)==$w->id)>{{ $w->name }}</option>
                                 @endforeach
                             </select>
                             @error('warehouse_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-3">
                             <label class="form-label required">Received At</label>
-                            <input type="datetime-local" name="received_at" value="{{ old('received_at', now()->format('Y-m-d\TH:i')) }}" class="form-control @error('received_at') is-invalid @enderror" required />
+                            <input type="datetime-local" name="received_at" value="{{ old('received_at', optional($receipt->received_at)->format('Y-m-d\TH:i')) }}" class="form-control @error('received_at') is-invalid @enderror" required />
                             @error('received_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
@@ -68,10 +69,10 @@
                             <tbody></tbody>
                         </table>
                     </div>
-                    <div class="text-muted small mb-4">Saat disimpan, sistem akan mengalokasikan qty ke PO terkait secara FIFO per SKU.</div>
+                    <div class="text-muted small mb-4">Saat disimpan, sistem akan me-reset alokasi dan mengalokasikan ulang ke PO secara FIFO per SKU.</div>
                     <div class="d-flex justify-content-end">
                         <a href="{{ route('admin.procurement.receipts.index') }}" class="btn btn-light me-3">Batal</a>
-                        <button type="submit" class="btn btn-primary">Post & Allocate</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>
                 </form>
             </div>
@@ -82,6 +83,7 @@
 <template id="tpl_item_row">
     <tr>
         <td>
+            <input type="hidden" name="items[__i__][id]" value="" />
             <select name="items[__i__][item_id]" class="form-select" required>
                 <option value="">- pilih item -</option>
                 @foreach(\App\Models\Item::orderBy('name')->get() as $it)
@@ -99,7 +101,7 @@
             <button type="button" class="btn btn-light-danger btn-sm btn-del-item">Hapus</button>
         </td>
     </tr>
-    </template>
+</template>
 
 <script>
 document.addEventListener('DOMContentLoaded', function(){
@@ -112,6 +114,7 @@ document.addEventListener('DOMContentLoaded', function(){
         tr.innerHTML = html;
         tbody.appendChild(tr);
         if (data) {
+            tr.querySelector('input[type=hidden]').value = data.id || '';
             tr.querySelector('select').value = data.item_id || '';
             tr.querySelector('input[name$="[qty_received]"]').value = data.qty_received || '';
             const kr = tr.querySelector('input[name$="[koli_received]"]');
@@ -120,20 +123,9 @@ document.addEventListener('DOMContentLoaded', function(){
         tr.querySelector('.btn-del-item').addEventListener('click', ()=> tr.remove());
     }
     document.getElementById('btn_add_item').addEventListener('click', ()=> addRow());
-    function populateFromShipment(){
-        tbody.innerHTML=''; idx=0;
-        const sel = document.getElementById('shipment_id');
-        const opt = sel.options[sel.selectedIndex];
-        if (!opt || !opt.dataset.items) { addRow(); return; }
-        try {
-            const items = JSON.parse(opt.dataset.items);
-            if (Array.isArray(items) && items.length) {
-                items.forEach(it => addRow({ item_id: it.item_id, qty_received: it.qty_expected, koli_received: it.koli_expected || 0 }));
-            } else { addRow(); }
-        } catch(e) { addRow(); }
-    }
-    document.getElementById('shipment_id').addEventListener('change', populateFromShipment);
-    populateFromShipment();
+    const preset = @json($receipt->items->map(fn($l)=> ['id'=>$l->id,'item_id'=>$l->item_id,'qty_received'=>$l->qty_received,'koli_received'=>$l->koli_received]));
+    if (preset.length) preset.forEach(addRow); else addRow();
 });
 </script>
 @endsection
+
