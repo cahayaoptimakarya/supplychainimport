@@ -57,7 +57,7 @@
                                 <li><code>name</code> — wajib</li>
                                 <li><code>cnt</code> — wajib (contoh: koli, pcs, dsb.)</li>
                                 <li><code>category</code> — wajib, isi nama kategori sesuai Masterdata Kategori</li>
-                                <li><code>uom</code> — wajib, isi nama UOM sesuai Masterdata UOM</li>
+                                <li><code>uom</code> — opsional; jika kosong akan menggunakan UOM default (ID 1). Jika diisi dan belum ada, UOM akan dibuat otomatis.</li>
                                 <li><code>description</code> — opsional</li>
                             </ul>
                             <div class="mt-3">Header alternatif yang didukung:</div>
@@ -105,10 +105,11 @@
                                 </thead>
                                 <tbody></tbody>
                             </table>
-                        </div>
-                    </div>
-                </div>
             </div>
+        </div>
+    </div>
+</div>
+
         </div>
     </div>
     </div>
@@ -456,6 +457,25 @@
                 <label class="form-label required">File CSV</label>
                 <input type="file" id="import_file" name="file" accept=".csv,text/csv" class="form-control form-control-solid" required />
                 <div class="form-text">Maks 20 MB. Pastikan header sesuai panduan.</div>
+            </div>
+            <div class="bg-light rounded p-4">
+                <div class="fw-bold mb-2">Keterangan kolom yang harus diisi:</div>
+                <ul class="mb-0">
+                    <li><code>sku</code> — wajib, unik</li>
+                    <li><code>name</code> / <code>nama</code> — wajib</li>
+                    <li><code>category</code> / <code>kategori</code> — wajib (nama kategori harus sudah ada)</li>
+                    <li><code>cnt</code> / <code>koli</code> — wajib</li>
+                    <li><code>uom</code> — opsional; jika kosong akan menggunakan UOM default (ID 1). Jika diisi dan belum ada, UOM akan dibuat otomatis.</li>
+                    <li><code>description</code> — opsional</li>
+                </ul>
+                <div class="mt-3">Header alternatif yang didukung:</div>
+                <ul class="mb-0">
+                    <li>category: <code>category</code> | <code>kategori</code> | <code>category_name</code></li>
+                    <li>uom: <code>uom</code> | <code>uom_name</code></li>
+                    <li>cnt: <code>cnt</code> | <code>koli</code></li>
+                    <li>name: <code>name</code> | <code>nama</code></li>
+                    <li>description: <code>description</code> | <code>deskripsi</code> | <code>keterangan</code></li>
+                </ul>
             </div>
         </form>
         <div id="import_result" class="d-none"></div>

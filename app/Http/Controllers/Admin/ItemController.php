@@ -153,14 +153,22 @@ class ItemController extends Controller
             if (!$sku) $rowErr[] = 'sku wajib';
             if (!$cnt) $rowErr[] = 'cnt wajib';
             if (!$cat) $rowErr[] = 'category wajib';
-            if (!$uom) $rowErr[] = 'uom wajib';
+            // UOM opsional: default ke ID 1 jika kosong
 
             if ($rowErr) { $errors[] = ['row' => $rownum, 'error' => implode('; ', $rowErr)]; continue; }
 
             $category = Category::where('name', $cat)->first();
             if (!$category) { $errors[] = ['row' => $rownum, 'error' => "Kategori '$cat' tidak ditemukan"]; continue; }
-            $uomModel = Uom::where('name', $uom)->first();
-            if (!$uomModel) { $errors[] = ['row' => $rownum, 'error' => "UOM '$uom' tidak ditemukan"]; continue; }
+            // Resolve UOM: jika ada di CSV tapi belum ada -> buat baru; jika kosong -> pakai default ID 1
+            if ($uom) {
+                $uomModel = Uom::where('name', $uom)->first();
+                if (!$uomModel) {
+                    $uomModel = Uom::create(['name' => $uom]);
+                }
+            } else {
+                $uomModel = Uom::find(1);
+                if (!$uomModel) { $errors[] = ['row' => $rownum, 'error' => "UOM default dengan ID 1 tidak ditemukan"]; continue; }
+            }
 
             // duplicate SKU check
             if (Item::where('sku', $sku)->exists()) {
