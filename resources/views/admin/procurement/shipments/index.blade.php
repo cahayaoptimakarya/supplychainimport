@@ -31,7 +31,7 @@
                 <div class="row g-3 mb-4 align-items-end">
                     <div class="col-md-3">
                         <label class="form-label">Status</label>
-                        <select id="filter_status" class="form-select">
+                        <select id="filter_status" class="form-select form-select-solid">
                             <option value="">All</option>
                             <option value="planned">Planned</option>
                             <option value="ready_at_port">Ready at Port</option>
@@ -45,11 +45,11 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">ETD From</label>
-                        <input type="text" id="filter_from" class="form-control js-fp-date" />
+                        <input type="text" id="filter_from" class="form-control js-fp-date form-control-solid" />
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">ETD To</label>
-                        <input type="text" id="filter_to" class="form-control js-fp-date" />
+                        <input type="text" id="filter_to" class="form-control js-fp-date form-control-solid" />
                     </div>
                     <div class="col-md-3">
                         <button id="btn_reset_filters" class="btn btn-light">Reset Filters</button>

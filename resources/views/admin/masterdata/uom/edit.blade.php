@@ -24,17 +24,17 @@
                     @method('PUT')
                     <div class="mb-10">
                         <label class="form-label required">Nama UOM</label>
-                        <input type="text" name="name" value="{{ old('name', $uom->name) }}" class="form-control @error('name') is-invalid @enderror" placeholder="cth: PCS, KG" required />
+                        <input type="text" name="name" value="{{ old('name', $uom->name) }}" class="form-control @error('name') is-invalid @enderror form-control-solid" placeholder="cth: PCS, KG" required />
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-10">
                         <label class="form-label">Simbol</label>
-                        <input type="text" name="symbol" value="{{ old('symbol', $uom->symbol) }}" maxlength="20" class="form-control @error('symbol') is-invalid @enderror" placeholder="cth: pcs, kg" />
+                        <input type="text" name="symbol" value="{{ old('symbol', $uom->symbol) }}" maxlength="20" class="form-control @error('symbol') is-invalid @enderror form-control-solid" placeholder="cth: pcs, kg" />
                         @error('symbol')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-10">
                         <label class="form-label">Keterangan</label>
-                        <textarea name="keterangan" class="form-control @error('keterangan') is-invalid @enderror" rows="3" placeholder="Keterangan tambahan">{{ old('keterangan', $uom->keterangan) }}</textarea>
+                        <textarea name="keterangan" class="form-control @error('keterangan') is-invalid @enderror form-control-solid" rows="3" placeholder="Keterangan tambahan">{{ old('keterangan', $uom->keterangan) }}</textarea>
                         @error('keterangan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="d-flex justify-content-end">

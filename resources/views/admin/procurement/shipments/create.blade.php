@@ -22,7 +22,7 @@
                     <div class="row g-5 mb-8">
                         <div class="col-md-3">
                             <label class="form-label">Code</label>
-                            <input type="text" class="form-control form-control-solid" value="{{ $code }}" disabled readonly />
+                            <input type="text" class="form-control form-control-white border-0" value="{{ $code }}" disabled readonly />
                             <input type="hidden" name="code" value="{{ $code }}" />
                         </div>
                         <div class="col-md-4">

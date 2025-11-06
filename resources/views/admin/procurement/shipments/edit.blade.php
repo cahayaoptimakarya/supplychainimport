@@ -23,7 +23,7 @@
                     <div class="row g-5 mb-8">
                         <div class="col-md-3">
                             <label class="form-label">Code</label>
-                            <input type="text" class="form-control form-control-solid" value="{{ $shipment->code }}" disabled readonly />
+                            <input type="text" class="form-control form-control-white border-0" value="{{ $shipment->code }}" disabled readonly />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Supplier</label>

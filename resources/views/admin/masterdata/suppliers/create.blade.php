@@ -29,31 +29,31 @@
 
                     <div class="mb-10">
                         <label class="form-label required">Nama</label>
-                        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Nama supplier" required />
+                        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror form-control-solid" placeholder="Nama supplier" required />
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="mb-10">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror" placeholder="Email supplier (opsional)" />
+                        <input type="email" name="email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror form-control-solid" placeholder="Email supplier (opsional)" />
                         @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="mb-10">
                         <label class="form-label">Telepon</label>
-                        <input type="text" name="phone" value="{{ old('phone') }}" class="form-control @error('phone') is-invalid @enderror" placeholder="Telepon (opsional)" />
+                        <input type="text" name="phone" value="{{ old('phone') }}" class="form-control @error('phone') is-invalid @enderror form-control-solid" placeholder="Telepon (opsional)" />
                         @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="mb-10">
                         <label class="form-label">Alamat</label>
-                        <textarea name="address" class="form-control @error('address') is-invalid @enderror" rows="3" placeholder="Alamat (opsional)">{{ old('address') }}</textarea>
+                        <textarea name="address" class="form-control @error('address') is-invalid @enderror form-control-solid" rows="3" placeholder="Alamat (opsional)">{{ old('address') }}</textarea>
                         @error('address')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="mb-10">
                         <label class="form-label required">Kategori Supplier</label>
-                        <select name="supplier_category_id" class="form-select @error('supplier_category_id') is-invalid @enderror" required data-control="select2" data-placeholder="Pilih kategori supplier">
+                        <select name="supplier_category_id" class="form-select @error('supplier_category_id') is-invalid @enderror form-select-solid" required data-control="select2" data-placeholder="Pilih kategori supplier">
                             <option value="">Pilih kategori supplier</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}" @selected(old('supplier_category_id') == $category->id)>{{ $category->name }}</option>

@@ -30,19 +30,19 @@
 
                     <div class="mb-10">
                         <label class="form-label required">Nama</label>
-                        <input type="text" name="name" value="{{ old('name', $warehouse->name) }}" class="form-control @error('name') is-invalid @enderror" placeholder="Nama warehouse" required />
+                        <input type="text" name="name" value="{{ old('name', $warehouse->name) }}" class="form-control @error('name') is-invalid @enderror form-control-solid" placeholder="Nama warehouse" required />
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="mb-10">
                         <label class="form-label">Alamat</label>
-                        <input type="text" name="address" value="{{ old('address', $warehouse->address) }}" class="form-control @error('address') is-invalid @enderror" placeholder="Alamat (opsional)" />
+                        <input type="text" name="address" value="{{ old('address', $warehouse->address) }}" class="form-control @error('address') is-invalid @enderror form-control-solid" placeholder="Alamat (opsional)" />
                         @error('address')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="mb-10">
                         <label class="form-label">Deskripsi</label>
-                        <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="3" placeholder="Deskripsi (opsional)">{{ old('description', $warehouse->description) }}</textarea>
+                        <textarea name="description" class="form-control @error('description') is-invalid @enderror form-control-solid" rows="3" placeholder="Deskripsi (opsional)">{{ old('description', $warehouse->description) }}</textarea>
                         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 

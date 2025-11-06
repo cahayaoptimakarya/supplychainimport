@@ -22,17 +22,17 @@
                     @csrf
                     <div class="mb-10">
                         <label class="form-label required">Nama Role</label>
-                        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="cth: Administrator" required />
+                        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror form-control-solid" placeholder="cth: Administrator" required />
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-10">
                         <label class="form-label">Slug</label>
-                        <input type="text" name="slug" value="{{ old('slug') }}" class="form-control @error('slug') is-invalid @enderror" placeholder="cth: admin" />
+                        <input type="text" name="slug" value="{{ old('slug') }}" class="form-control @error('slug') is-invalid @enderror form-control-solid" placeholder="cth: admin" />
                         @error('slug')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-10">
                         <label class="form-label">Deskripsi</label>
-                        <input type="text" name="description" value="{{ old('description') }}" class="form-control @error('description') is-invalid @enderror" placeholder="Deskripsi" />
+                        <input type="text" name="description" value="{{ old('description') }}" class="form-control @error('description') is-invalid @enderror form-control-solid" placeholder="Deskripsi" />
                         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="d-flex justify-content-end">

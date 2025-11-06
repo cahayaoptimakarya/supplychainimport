@@ -3451,7 +3451,7 @@ License: For each use you must have a valid license purchased only from above li
 															<!--end::Svg Icon-->
 															<!--end::Icon-->
 															<!--begin::Input-->
-															<input type="text" class="form-control form-control-flush ps-10" name="search" value="" placeholder="Search..." data-kt-search-element="input" />
+															<input type="text" class="form-control form-control-flush ps-10 form-control-solid" name="search" value="" placeholder="Search..." data-kt-search-element="input" />
 															<!--end::Input-->
 															<!--begin::Spinner-->
 															<span class="position-absolute top-50 end-0 translate-middle-y lh-0 d-none me-1" data-kt-search-element="spinner">
@@ -8830,7 +8830,7 @@ License: For each use you must have a valid license purchased only from above li
 				<!--begin::Card footer-->
 				<div class="card-footer pt-4" id="kt_drawer_chat_messenger_footer">
 					<!--begin::Input-->
-					<textarea class="form-control form-control-flush mb-3" rows="1" data-kt-element="input" placeholder="Type a message"></textarea>
+					<textarea class="form-control form-control-flush mb-3 form-control-solid" rows="1" data-kt-element="input" placeholder="Type a message"></textarea>
 					<!--end::Input-->
 					<!--begin:Toolbar-->
 					<div class="d-flex flex-stack">

@@ -361,7 +361,7 @@
             <input type="hidden" id="category_id" />
             <div class="mb-10">
                 <label class="form-label required">Nama</label>
-                <input type="text" id="category_name" class="form-control" placeholder="Nama kategori" required />
+                <input type="text" id="category_name" class="form-control form-control-solid" placeholder="Nama kategori" required />
             </div>
         </form>
       </div>
@@ -454,7 +454,7 @@
             @csrf
             <div class="mb-10">
                 <label class="form-label required">File CSV</label>
-                <input type="file" id="import_file" name="file" accept=".csv,text/csv" class="form-control" required />
+                <input type="file" id="import_file" name="file" accept=".csv,text/csv" class="form-control form-control-solid" required />
                 <div class="form-text">Maks 20 MB. Pastikan header sesuai panduan.</div>
             </div>
         </form>

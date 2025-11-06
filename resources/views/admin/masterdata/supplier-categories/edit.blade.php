@@ -30,7 +30,7 @@
 
                     <div class="mb-10">
                         <label class="form-label required">Nama</label>
-                        <input type="text" name="name" value="{{ old('name', $category->name) }}" class="form-control @error('name') is-invalid @enderror" placeholder="Nama kategori supplier" required />
+                        <input type="text" name="name" value="{{ old('name', $category->name) }}" class="form-control @error('name') is-invalid @enderror form-control-solid" placeholder="Nama kategori supplier" required />
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 

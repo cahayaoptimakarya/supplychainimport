@@ -23,27 +23,27 @@
                     @method('PUT')
                     <div class="mb-10">
                         <label class="form-label required">Nama</label>
-                        <input type="text" name="name" value="{{ old('name', $menu->name) }}" class="form-control @error('name') is-invalid @enderror" required />
+                        <input type="text" name="name" value="{{ old('name', $menu->name) }}" class="form-control @error('name') is-invalid @enderror form-control-solid" required />
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-10">
                         <label class="form-label required">Slug</label>
-                        <input type="text" name="slug" value="{{ old('slug', $menu->slug) }}" class="form-control @error('slug') is-invalid @enderror" required />
+                        <input type="text" name="slug" value="{{ old('slug', $menu->slug) }}" class="form-control @error('slug') is-invalid @enderror form-control-solid" required />
                         @error('slug')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-10">
                         <label class="form-label">Route</label>
-                        <input type="text" name="route" value="{{ old('route', $menu->route) }}" class="form-control @error('route') is-invalid @enderror" />
+                        <input type="text" name="route" value="{{ old('route', $menu->route) }}" class="form-control @error('route') is-invalid @enderror form-control-solid" />
                         @error('route')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-10">
                         <label class="form-label">Icon</label>
-                        <input type="text" name="icon" value="{{ old('icon', $menu->icon) }}" class="form-control @error('icon') is-invalid @enderror" />
+                        <input type="text" name="icon" value="{{ old('icon', $menu->icon) }}" class="form-control @error('icon') is-invalid @enderror form-control-solid" />
                         @error('icon')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-10">
                         <label class="form-label">Parent</label>
-                        <select name="parent_id" class="form-select @error('parent_id') is-invalid @enderror">
+                        <select name="parent_id" class="form-select @error('parent_id') is-invalid @enderror form-select-solid">
                             <option value="">(Tidak ada)</option>
                             @foreach($parents as $p)
                                 <option value="{{ $p->id }}" @selected(old('parent_id', $menu->parent_id) == $p->id)>{{ $p->name }}</option>
@@ -53,7 +53,7 @@
                     </div>
                     <div class="mb-10">
                         <label class="form-label">Urutan</label>
-                        <input type="number" name="sort_order" value="{{ old('sort_order', $menu->sort_order) }}" class="form-control @error('sort_order') is-invalid @enderror" />
+                        <input type="number" name="sort_order" value="{{ old('sort_order', $menu->sort_order) }}" class="form-control @error('sort_order') is-invalid @enderror form-control-solid" />
                         @error('sort_order')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="form-check form-switch mb-10">

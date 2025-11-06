@@ -29,25 +29,25 @@
 
                     <div class="mb-10">
                         <label class="form-label required">SKU</label>
-                        <input type="text" name="sku" value="{{ old('sku') }}" class="form-control @error('sku') is-invalid @enderror" placeholder="SKU item" required />
+                        <input type="text" name="sku" value="{{ old('sku') }}" class="form-control @error('sku') is-invalid @enderror form-control-solid" placeholder="SKU item" required />
                         @error('sku')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="mb-10">
                         <label class="form-label required">Nama</label>
-                        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror" placeholder="Nama item" required />
+                        <input type="text" name="name" value="{{ old('name') }}" class="form-control @error('name') is-invalid @enderror form-control-solid" placeholder="Nama item" required />
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="mb-10">
                         <label class="form-label required">CNT</label>
-                        <input type="text" name="cnt" value="{{ old('cnt') }}" class="form-control @error('cnt') is-invalid @enderror" placeholder="Informasi CNT" required />
+                        <input type="text" name="cnt" value="{{ old('cnt') }}" class="form-control @error('cnt') is-invalid @enderror form-control-solid" placeholder="Informasi CNT" required />
                         @error('cnt')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="mb-10">
                         <label class="form-label required">Kategori</label>
-                        <select name="category_id" class="form-select @error('category_id') is-invalid @enderror" required data-control="select2" data-placeholder="Pilih kategori">
+                        <select name="category_id" class="form-select @error('category_id') is-invalid @enderror form-select-solid" required data-control="select2" data-placeholder="Pilih kategori">
                             <option value="">Pilih kategori</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>{{ $category->name }}</option>
@@ -58,7 +58,7 @@
 
                     <div class="mb-10">
                         <label class="form-label required">UOM</label>
-                        <select name="uom_id" class="form-select @error('uom_id') is-invalid @enderror" required data-control="select2" data-placeholder="Pilih UOM">
+                        <select name="uom_id" class="form-select @error('uom_id') is-invalid @enderror form-select-solid" required data-control="select2" data-placeholder="Pilih UOM">
                             <option value="">Pilih UOM</option>
                             @foreach($uoms as $uom)
                                 <option value="{{ $uom->id }}" @selected(old('uom_id') == $uom->id)>{{ $uom->name }}</option>
@@ -69,7 +69,7 @@
 
                     <div class="mb-10">
                         <label class="form-label">Deskripsi</label>
-                        <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="3" placeholder="Deskripsi item (opsional)">{{ old('description') }}</textarea>
+                        <textarea name="description" class="form-control @error('description') is-invalid @enderror form-control-solid" rows="3" placeholder="Deskripsi item (opsional)">{{ old('description') }}</textarea>
                         @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 

@@ -335,7 +335,7 @@
             <input type="hidden" id="suppcat_id" />
             <div class="mb-10">
                 <label class="form-label required">Nama</label>
-                <input type="text" id="suppcat_name" class="form-control" placeholder="Nama kategori supplier" required />
+                <input type="text" id="suppcat_name" class="form-control form-control-solid" placeholder="Nama kategori supplier" required />
             </div>
         </form>
       </div>

@@ -23,11 +23,11 @@
                     <div class="row g-5 mb-8">
                         <div class="col-md-3">
                             <label class="form-label">Code</label>
-                            <input type="text" class="form-control" value="{{ $receipt->code }}" disabled readonly />
+                            <input type="text" class="form-control form-control-white border-0" value="{{ $receipt->code }}" disabled readonly />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label required">Shipment</label>
-                            <select id="shipment_id" name="shipment_id" class="form-select @error('shipment_id') is-invalid @enderror" required>
+                            <select id="shipment_id" name="shipment_id" class="form-select @error('shipment_id') is-invalid @enderror form-select-solid" required>
                                 <option value="">- pilih shipment -</option>
                                 @foreach($shipments as $s)
                                     <option value="{{ $s->id }}" @selected(old('shipment_id', $receipt->shipment_id)==$s->id)>#{{ $s->id }} {{ $s->container_no ? '(' . $s->container_no . ')' : '' }}</option>
@@ -37,7 +37,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label required">Warehouse</label>
-                            <select name="warehouse_id" class="form-select @error('warehouse_id') is-invalid @enderror" required>
+                            <select name="warehouse_id" class="form-select @error('warehouse_id') is-invalid @enderror form-select-solid" required>
                                 <option value="">- pilih -</option>
                                 @foreach($warehouses as $w)
                                     <option value="{{ $w->id }}" @selected(old('warehouse_id', $receipt->warehouse_id)==$w->id)>{{ $w->name }}</option>
@@ -47,7 +47,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label required">Received At</label>
-                            <input type="text" name="received_at" value="{{ old('received_at', optional($receipt->received_at)->format('Y-m-d H:i')) }}" class="form-control js-fp-dt @error('received_at') is-invalid @enderror" required />
+                            <input type="text" name="received_at" value="{{ old('received_at', optional($receipt->received_at)->format('Y-m-d H:i')) }}" class="form-control js-fp-dt @error('received_at') is-invalid @enderror form-control-solid" required />
                             @error('received_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
@@ -84,7 +84,7 @@
     <tr>
         <td>
             <input type="hidden" name="items[__i__][id]" value="" />
-            <select name="items[__i__][item_id]" class="form-select" required>
+            <select name="items[__i__][item_id]" class="form-select form-select-solid" required>
                 <option value="">- pilih item -</option>
                 @foreach(\App\Models\Item::orderBy('name')->get() as $it)
                     <option value="{{ $it->id }}">{{ $it->sku }} - {{ $it->name }}</option>
@@ -92,10 +92,10 @@
             </select>
         </td>
         <td>
-            <input type="number" step="1" min="0" name="items[__i__][qty_received]" class="form-control" required />
+            <input type="number" step="1" min="0" name="items[__i__][qty_received]" class="form-control form-control-solid" required />
         </td>
         <td>
-            <input type="number" step="0.0001" min="0" name="items[__i__][koli_received]" class="form-control" />
+            <input type="number" step="0.0001" min="0" name="items[__i__][koli_received]" class="form-control form-control-solid" />
         </td>
         <td class="text-end">
             <button type="button" class="btn btn-light-danger btn-sm btn-del-item">Hapus</button>

@@ -23,7 +23,7 @@
                     <div class="row mb-10">
                         <div class="col-md-3">
                             <label class="form-label">Code</label>
-                            <input type="text" class="form-control form-control-solid" value="{{ $po->code }}" disabled readonly />
+                            <input type="text" class="form-control form-control-white border-0" value="{{ $po->code }}" disabled readonly />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label required">Supplier</label>
