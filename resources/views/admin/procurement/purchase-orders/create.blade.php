@@ -22,12 +22,12 @@
                     <div class="row mb-10">
                         <div class="col-md-3">
                             <label class="form-label">Code</label>
-                            <input type="text" class="form-control" value="{{ $code }}" disabled readonly />
+                            <input type="text" class="form-control form-control-solid" value="{{ $code }}" disabled readonly />
                             <input type="hidden" name="code" value="{{ $code }}" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label required">Supplier</label>
-                            <select name="supplier_id" class="form-select @error('supplier_id') is-invalid @enderror" required>
+                            <select name="supplier_id" class="form-select @error('supplier_id') is-invalid @enderror form-select-solid" required>
                                 <option value="">- pilih -</option>
                                 @foreach($suppliers as $s)
                                     <option value="{{ $s->id }}" @selected(old('supplier_id')==$s->id)>{{ $s->name }}</option>
@@ -37,12 +37,12 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label required">Tanggal</label>
-                            <input type="text" name="order_date" value="{{ old('order_date', now()->toDateString()) }}" class="form-control js-fp-date @error('order_date') is-invalid @enderror" required />
+                            <input type="text" name="order_date" value="{{ old('order_date', now()->toDateString()) }}" class="form-control js-fp-date @error('order_date') is-invalid @enderror form-control-solid" required />
                             @error('order_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-5">
                             <label class="form-label">Ref No</label>
-                            <input type="text" name="ref_no" value="{{ old('ref_no') }}" class="form-control @error('ref_no') is-invalid @enderror" />
+                            <input type="text" name="ref_no" value="{{ old('ref_no') }}" class="form-control @error('ref_no') is-invalid @enderror form-control-solid" />
                             @error('ref_no')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
@@ -78,7 +78,7 @@
 <template id="tpl_line_row">
     <tr>
         <td>
-            <select name="lines[__i__][item_id]" class="form-select" required>
+            <select name="lines[__i__][item_id]" class="form-select form-select-solid" required>
                 <option value="">- pilih item -</option>
                 @foreach($items as $it)
                     <option value="{{ $it->id }}">{{ $it->sku }} - {{ $it->name }}</option>
@@ -86,13 +86,13 @@
             </select>
         </td>
         <td>
-            <input type="number" step="1" min="1" name="lines[__i__][qty_ordered]" class="form-control" required />
+            <input type="number" step="1" min="1" name="lines[__i__][qty_ordered]" class="form-control form-control-solid" required />
         </td>
         <td>
-            <input type="number" step="0.0001" min="0" name="lines[__i__][koli_ordered]" class="form-control" />
+            <input type="number" step="0.0001" min="0" name="lines[__i__][koli_ordered]" class="form-control form-control-solid" />
         </td>
         <td>
-            <input type="text" name="lines[__i__][notes]" class="form-control" />
+            <input type="text" name="lines[__i__][notes]" class="form-control form-control-solid" />
         </td>
         <td class="text-end">
             <button type="button" class="btn btn-light-danger btn-sm btn-del-line">Hapus</button>

@@ -22,12 +22,12 @@
                     <div class="row g-5 mb-8">
                         <div class="col-md-3">
                             <label class="form-label">Code</label>
-                            <input type="text" class="form-control" value="{{ $code }}" disabled readonly />
+                            <input type="text" class="form-control form-control-solid" value="{{ $code }}" disabled readonly />
                             <input type="hidden" name="code" value="{{ $code }}" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Supplier</label>
-                            <select name="supplier_id" class="form-select">
+                            <select name="supplier_id" class="form-select form-select-solid">
                                 <option value="">- pilih -</option>
                                 @foreach($suppliers as $s)
                                     <option value="{{ $s->id }}" @selected(old('supplier_id')==$s->id)>{{ $s->name }}</option>
@@ -36,23 +36,23 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Container No</label>
-                            <input type="text" name="container_no" value="{{ old('container_no') }}" class="form-control" />
+                            <input type="text" name="container_no" value="{{ old('container_no') }}" class="form-control form-control-solid" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">PL No</label>
-                            <input type="text" name="pl_no" value="{{ old('pl_no') }}" class="form-control" />
+                            <input type="text" name="pl_no" value="{{ old('pl_no') }}" class="form-control form-control-solid" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">ETD</label>
-                            <input type="text" name="etd" value="{{ old('etd') }}" class="form-control js-fp-date" />
+                            <input type="text" name="etd" value="{{ old('etd') }}" class="form-control js-fp-date form-control-solid" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">ETA</label>
-                            <input type="text" name="eta" value="{{ old('eta') }}" class="form-control js-fp-date" />
+                            <input type="text" name="eta" value="{{ old('eta') }}" class="form-control js-fp-date form-control-solid" />
                             </div>
                         <div class="col-md-3">
                             <label class="form-label">Status</label>
-                            <select name="status" class="form-select">
+                            <select name="status" class="form-select form-select-solid">
                                 @foreach(['planned','ready_at_port','on_board','arrived','under_bc','released','delivered_to_main_wh','received'] as $st)
                                     <option value="{{ $st }}" @selected(old('status','planned')==$st)>{{ $st }}</option>
                                 @endforeach
@@ -90,7 +90,7 @@
 <template id="tpl_item_row">
     <tr>
         <td>
-            <select name="items[__i__][item_id]" class="form-select" required>
+            <select name="items[__i__][item_id]" class="form-select form-select-solid" required>
                 <option value="">- pilih item -</option>
                 @foreach($items as $it)
                     <option value="{{ $it->id }}">{{ $it->sku }} - {{ $it->name }}</option>
@@ -98,10 +98,10 @@
             </select>
         </td>
         <td>
-            <input type="number" step="1" min="1" name="items[__i__][qty_expected]" class="form-control" required />
+            <input type="number" step="1" min="1" name="items[__i__][qty_expected]" class="form-control form-control-solid" required />
         </td>
         <td>
-            <input type="number" step="0.0001" min="0" name="items[__i__][koli_expected]" class="form-control" />
+            <input type="number" step="0.0001" min="0" name="items[__i__][koli_expected]" class="form-control form-control-solid" />
         </td>
         <td class="text-end">
             <button type="button" class="btn btn-light-danger btn-sm btn-del-item">Hapus</button>
