@@ -10,7 +10,6 @@ class Shipment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'supplier_id',
         'code',
         'container_no',
         'pl_no',
@@ -23,11 +22,6 @@ class Shipment extends Model
         'etd' => 'date',
         'eta' => 'date',
     ];
-
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class);
-    }
 
     public function items()
     {

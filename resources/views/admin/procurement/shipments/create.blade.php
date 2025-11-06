@@ -26,15 +26,6 @@
                             <input type="hidden" name="code" value="{{ $code }}" />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Supplier</label>
-                            <select name="supplier_id" class="form-select form-select-solid">
-                                <option value="">- pilih -</option>
-                                @foreach($suppliers as $s)
-                                    <option value="{{ $s->id }}" @selected(old('supplier_id')==$s->id)>{{ $s->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-4">
                             <label class="form-label">Container No</label>
                             <input type="text" name="container_no" value="{{ old('container_no') }}" class="form-control form-control-solid" />
                         </div>

@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('shipments', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique();
-            $table->foreignId('supplier_id')->nullable()->index();
             $table->string('container_no')->nullable();
             $table->string('pl_no')->nullable();
             $table->date('etd')->nullable();

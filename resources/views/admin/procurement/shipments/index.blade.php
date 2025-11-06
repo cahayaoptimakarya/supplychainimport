@@ -61,7 +61,6 @@
                         <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
                             <th>ID</th>
                             <th>Code</th>
-                            <th>Supplier</th>
                             <th>Container</th>
                             <th>PL</th>
                             <th>ETD</th>
@@ -75,7 +74,7 @@
                         <tbody></tbody>
                         <tfoot>
                         <tr class="fw-bold">
-                            <th colspan="8" class="text-end">Totals:</th>
+                            <th colspan="7" class="text-end">Totals:</th>
                             <th id="ft_items_count">0</th>
                             <th id="ft_koli_expected">0</th>
                             <th></th>
@@ -128,7 +127,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const text = val || '-';
                 return `<a href=\"${href}\" class=\"text-primary text-decoration-underline\">${text}</a>`;
             }},
-            { data: 'supplier', defaultContent: '-' },
             { data: 'container_no', defaultContent: '-' },
             { data: 'pl_no', defaultContent: '-' },
             { data: 'etd', defaultContent: '-' },

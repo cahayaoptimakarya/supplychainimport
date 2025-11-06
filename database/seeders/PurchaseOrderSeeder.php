@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Item;
 use App\Models\PoLine;
 use App\Models\PurchaseOrder;
-use App\Models\Supplier;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -13,11 +12,10 @@ class PurchaseOrderSeeder extends Seeder
 {
     public function run(): void
     {
-        $suppliers = Supplier::all();
         $items = Item::all();
 
-        if ($suppliers->isEmpty() || $items->isEmpty()) {
-            // Nothing to seed without suppliers or items
+        if ($items->isEmpty()) {
+            // Nothing to seed without items
             return;
         }
 
@@ -26,14 +24,12 @@ class PurchaseOrderSeeder extends Seeder
         };
 
         for ($i = 0; $i < 5; $i++) {
-            $supplier = $suppliers->random();
             // Ensure unique code
             do {
                 $code = $makeCode();
             } while (PurchaseOrder::where('code', $code)->exists());
 
             $po = PurchaseOrder::create([
-                'supplier_id' => $supplier->id,
                 'code' => $code,
                 'order_date' => now()->subDays(rand(0, 30))->toDateString(),
                 'ref_no' => rand(0,1) ? ('REF-'.strtoupper(Str::random(5))) : null,

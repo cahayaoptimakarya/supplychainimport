@@ -58,7 +58,6 @@
                             <th>ID</th>
                             <th>Code</th>
                             <th>Ref</th>
-                            <th>Supplier</th>
                             <th>Tgl PO</th>
                             <th>Lines</th>
                             <th>Qty Ordered</th>
@@ -72,7 +71,7 @@
                         <tbody></tbody>
                         <tfoot>
                         <tr class="fw-bold">
-                            <th colspan="6" class="text-end">Totals:</th>
+                            <th colspan="5" class="text-end">Totals:</th>
                             <th id="ft_qty_ordered">0</th>
                             <th id="ft_koli_ordered">0</th>
                             <th id="ft_qty_fulfilled">0</th>
@@ -131,7 +130,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return `<a href="${href}" class="text-primary text-decoration-underline">${text}</a>`;
             }},
             { data: 'ref_no', defaultContent: '-' },
-            { data: 'supplier', defaultContent: '-' },
             { data: 'order_date' },
             { data: 'lines_count', defaultContent: 0 },
             { data: 'qty_ordered', render: v => nf.format(v) },

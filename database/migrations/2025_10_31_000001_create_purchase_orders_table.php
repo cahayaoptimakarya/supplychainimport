@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique();
-            $table->foreignId('supplier_id')->nullable()->index();
             $table->date('order_date');
             $table->string('ref_no')->nullable();
             $table->enum('status', ['open','partial','fulfilled'])->default('open');

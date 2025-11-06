@@ -26,15 +26,6 @@
                             <input type="text" class="form-control form-control-white border-0" value="{{ $shipment->code }}" disabled readonly />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Supplier</label>
-                            <select name="supplier_id" class="form-select form-select-solid">
-                                <option value="">- pilih -</option>
-                                @foreach($suppliers as $s)
-                                    <option value="{{ $s->id }}" @selected(old('supplier_id', $shipment->supplier_id)==$s->id)>{{ $s->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-4">
                             <label class="form-label">Container No</label>
                             <input type="text" name="container_no" value="{{ old('container_no', $shipment->container_no) }}" class="form-control form-control-solid" />
                         </div>

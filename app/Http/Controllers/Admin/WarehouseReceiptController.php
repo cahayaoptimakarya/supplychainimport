@@ -8,10 +8,10 @@ use App\Models\Shipment;
 use App\Models\Warehouse;
 use App\Models\WarehouseReceipt;
 use App\Models\ReceiptItem;
+use App\Models\PoLine;
 use App\Services\FifoAllocator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 
 class WarehouseReceiptController extends Controller
@@ -199,8 +199,10 @@ class WarehouseReceiptController extends Controller
             $keep = [];
             foreach ($validated['items'] as $row) {
                 $qty = (float) ($row['qty_received'] ?? 0);
+                $previousLineIds = [];
                 if (!empty($row['id'])) {
                     $ri = ReceiptItem::where('warehouse_receipt_id', $receipt->id)->where('id', $row['id'])->firstOrFail();
+                    $previousLineIds = $ri->allocations()->pluck('po_line_id')->all();
                     $ri->update([
                         'item_id' => $row['item_id'],
                         'qty_received' => $qty,
@@ -215,11 +217,30 @@ class WarehouseReceiptController extends Controller
                     ]);
                 }
                 // Reset allocations for this item then re-allocate
-                $ri->allocations()->delete();
-                FifoAllocator::allocateReceiptItem($ri);
+                if (!empty($previousLineIds)) {
+                    $ri->allocations()->delete();
+                    PoLine::whereIn('id', $previousLineIds)->get()->each->refreshFulfillmentMetrics();
+                } else {
+                    $ri->allocations()->delete();
+                }
+                FifoAllocator::allocateReceiptItem($ri, $previousLineIds);
                 $keep[] = $ri->id;
             }
-            ReceiptItem::where('warehouse_receipt_id', $receipt->id)->whereNotIn('id', $keep)->delete();
+            $itemsToDelete = ReceiptItem::where('warehouse_receipt_id', $receipt->id)
+                ->whereNotIn('id', $keep)
+                ->with('allocations')
+                ->get();
+
+            $linesToRefresh = [];
+            foreach ($itemsToDelete as $item) {
+                $linesToRefresh = array_merge($linesToRefresh, $item->allocations->pluck('po_line_id')->all());
+                $item->allocations()->delete();
+                $item->delete();
+            }
+
+            if (!empty($linesToRefresh)) {
+                PoLine::whereIn('id', array_unique($linesToRefresh))->get()->each->refreshFulfillmentMetrics();
+            }
         });
 
         return redirect()->route('admin.procurement.receipts.index')->with('success', 'Penerimaan gudang berhasil diperbarui');
@@ -227,7 +248,22 @@ class WarehouseReceiptController extends Controller
 
     public function destroy(WarehouseReceipt $receipt)
     {
-        $receipt->delete();
+        DB::transaction(function () use ($receipt) {
+            $affectedLineIds = $receipt->items()
+                ->with('allocations:po_line_id,receipt_item_id')
+                ->get()
+                ->flatMap(fn($item) => $item->allocations->pluck('po_line_id'))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $receipt->delete();
+
+            if (!empty($affectedLineIds)) {
+                PoLine::whereIn('id', $affectedLineIds)->get()->each->refreshFulfillmentMetrics();
+            }
+        });
         return redirect()->route('admin.procurement.receipts.index')->with('success', 'Penerimaan gudang berhasil dihapus');
     }
 }

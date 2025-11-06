@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Item;
 use App\Models\Shipment;
 use App\Models\ShipmentItem;
-use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -29,7 +28,6 @@ class ShipmentController extends Controller
         $dateTo = $request->input('date_to');
 
         $base = \DB::table('shipments as sh')
-            ->leftJoin('suppliers as s', 's.id', '=', 'sh.supplier_id')
             ->leftJoin('shipment_items as si', 'si.shipment_id', '=', 'sh.id')
             ->groupBy('sh.id');
 
@@ -42,8 +40,7 @@ class ShipmentController extends Controller
                 $q->where(function($w) use ($like){
                     $w->where('sh.code','like',$like)
                       ->orWhere('sh.container_no','like',$like)
-                      ->orWhere('sh.pl_no','like',$like)
-                      ->orWhere('s.name','like',$like);
+                      ->orWhere('sh.pl_no','like',$like);
                 });
             })
             ->when($status, fn($q)=> $q->where('sh.status', $status))
@@ -52,7 +49,7 @@ class ShipmentController extends Controller
         $recordsFiltered = $filtered->get()->count();
 
         $dataQuery = (clone $base)
-            ->selectRaw('sh.id, sh.code, sh.container_no, sh.pl_no, sh.etd, sh.eta, sh.status, s.name as supplier')
+            ->selectRaw('sh.id, sh.code, sh.container_no, sh.pl_no, sh.etd, sh.eta, sh.status')
             ->selectRaw('COUNT(DISTINCT si.id) as items_count')
             ->selectRaw('COALESCE(SUM(si.koli_expected),0) as koli_expected_total')
             ->when($search, function($q) use ($search){
@@ -60,8 +57,7 @@ class ShipmentController extends Controller
                 $q->where(function($w) use ($like){
                     $w->where('sh.code','like',$like)
                       ->orWhere('sh.container_no','like',$like)
-                      ->orWhere('sh.pl_no','like',$like)
-                      ->orWhere('s.name','like',$like);
+                      ->orWhere('sh.pl_no','like',$like);
                 });
             })
             ->when($status, fn($q)=> $q->where('sh.status', $status))
@@ -74,7 +70,6 @@ class ShipmentController extends Controller
         $columnsMap = [
             'id' => 'sh.id',
             'code' => 'sh.code',
-            'supplier' => 'supplier',
             'container_no' => 'sh.container_no',
             'pl_no' => 'sh.pl_no',
             'etd' => 'sh.etd',
@@ -98,7 +93,6 @@ class ShipmentController extends Controller
             return [
                 'id' => $r->id,
                 'code' => $r->code,
-                'supplier' => $r->supplier,
                 'container_no' => $r->container_no,
                 'pl_no' => $r->pl_no,
                 'etd' => $r->etd ? \Carbon\Carbon::parse($r->etd)->format('Y-m-d') : null,
@@ -119,16 +113,14 @@ class ShipmentController extends Controller
 
     public function create()
     {
-        $suppliers = Supplier::orderBy('name')->get();
         $items = Item::orderBy('name')->get();
         $code = 'SH-'.now()->format('ymd').'-'.strtoupper(Str::random(4));
-        return view('admin.procurement.shipments.create', compact('suppliers', 'items', 'code'));
+        return view('admin.procurement.shipments.create', compact('items', 'code'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'supplier_id' => ['nullable', 'exists:suppliers,id'],
             'container_no' => ['nullable', 'string', 'max:255'],
             'pl_no' => ['nullable', 'string', 'max:255'],
             'etd' => ['nullable', 'date'],
@@ -148,7 +140,6 @@ class ShipmentController extends Controller
             }
 
             $shipment = Shipment::create([
-                'supplier_id' => $validated['supplier_id'] ?? null,
                 'code' => $code,
                 'container_no' => $validated['container_no'] ?? null,
                 'pl_no' => $validated['pl_no'] ?? null,
@@ -171,16 +162,14 @@ class ShipmentController extends Controller
 
     public function edit(Shipment $shipment)
     {
-        $suppliers = Supplier::orderBy('name')->get();
         $items = Item::orderBy('name')->get();
         $shipment->load('items');
-        return view('admin.procurement.shipments.edit', compact('shipment', 'suppliers', 'items'));
+        return view('admin.procurement.shipments.edit', compact('shipment', 'items'));
     }
 
     public function update(Request $request, Shipment $shipment)
     {
         $validated = $request->validate([
-            'supplier_id' => ['nullable', 'exists:suppliers,id'],
             'container_no' => ['nullable', 'string', 'max:255'],
             'pl_no' => ['nullable', 'string', 'max:255'],
             'etd' => ['nullable', 'date'],
@@ -195,7 +184,6 @@ class ShipmentController extends Controller
 
         DB::transaction(function () use ($validated, $shipment) {
             $shipment->update([
-                'supplier_id' => $validated['supplier_id'] ?? null,
                 'container_no' => $validated['container_no'] ?? null,
                 'pl_no' => $validated['pl_no'] ?? null,
                 'etd' => $validated['etd'] ?? null,

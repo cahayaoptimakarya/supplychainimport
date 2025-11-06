@@ -6,9 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Item;
 use App\Models\PoLine;
 use App\Models\PurchaseOrder;
-use App\Models\Supplier;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PurchaseOrderController extends Controller
@@ -29,9 +27,7 @@ class PurchaseOrderController extends Controller
         $dateTo = $request->input('date_to');
 
         $base = \DB::table('purchase_orders as po')
-            ->leftJoin('suppliers as s', 's.id', '=', 'po.supplier_id')
             ->leftJoin('po_lines as pl', 'pl.purchase_order_id', '=', 'po.id')
-            ->leftJoin('receipt_allocations as ra', 'ra.po_line_id', '=', 'pl.id')
             ->groupBy('po.id');
 
         // recordsTotal (total rows before filtering)
@@ -44,8 +40,7 @@ class PurchaseOrderController extends Controller
                 $like = '%'.$search.'%';
                 $q->where(function($w) use ($like){
                     $w->where('po.code', 'like', $like)
-                      ->orWhere('po.ref_no', 'like', $like)
-                      ->orWhere('s.name', 'like', $like);
+                      ->orWhere('po.ref_no', 'like', $like);
                 });
             })
             ->when($dateFrom, fn($q)=> $q->whereDate('po.order_date', '>=', $dateFrom))
@@ -56,8 +51,8 @@ class PurchaseOrderController extends Controller
             ->selectRaw(
                 "
                 COALESCE(SUM(pl.qty_ordered),0) as qty_ordered,
-                COALESCE(SUM(ra.qty),0) as qty_fulfilled,
-                GREATEST(0, COALESCE(SUM(pl.qty_ordered),0) - COALESCE(SUM(ra.qty),0)) as qty_open
+                COALESCE(SUM(pl.qty_fulfilled),0) as qty_fulfilled,
+                COALESCE(SUM(pl.qty_remaining),0) as qty_open
                 "
             );
 
@@ -73,19 +68,18 @@ class PurchaseOrderController extends Controller
 
         // Main data query with pagination and ordering
         $dataQuery = (clone $base)
-            ->selectRaw('po.id, po.code, po.ref_no, po.order_date, s.name as supplier')
+            ->selectRaw('po.id, po.code, po.ref_no, po.order_date')
             ->selectRaw('COUNT(DISTINCT pl.id) as lines_count')
             ->selectRaw('COALESCE(SUM(pl.qty_ordered),0) as qty_ordered')
             ->selectRaw('COALESCE(SUM(pl.koli_ordered),0) as koli_ordered')
-            ->selectRaw('COALESCE(SUM(ra.qty),0) as qty_fulfilled')
-            ->selectRaw('GREATEST(0, COALESCE(SUM(pl.qty_ordered),0) - COALESCE(SUM(ra.qty),0)) as qty_open')
-            ->selectRaw("CASE WHEN GREATEST(0, COALESCE(SUM(pl.qty_ordered),0) - COALESCE(SUM(ra.qty),0)) <= 0 THEN 'fulfilled' WHEN COALESCE(SUM(ra.qty),0) > 0 THEN 'partial' ELSE 'open' END as status")
+            ->selectRaw('COALESCE(SUM(pl.qty_fulfilled),0) as qty_fulfilled')
+            ->selectRaw('COALESCE(SUM(pl.qty_remaining),0) as qty_open')
+            ->selectRaw("CASE WHEN COALESCE(SUM(pl.qty_remaining),0) <= 0 THEN 'fulfilled' WHEN COALESCE(SUM(pl.qty_fulfilled),0) > 0 THEN 'partial' ELSE 'open' END as status")
             ->when($search, function($q) use ($search) {
                 $like = '%'.$search.'%';
                 $q->where(function($w) use ($like){
                     $w->where('po.code', 'like', $like)
-                      ->orWhere('po.ref_no', 'like', $like)
-                      ->orWhere('s.name', 'like', $like);
+                      ->orWhere('po.ref_no', 'like', $like);
                 });
             })
             ->when($dateFrom, fn($q)=> $q->whereDate('po.order_date', '>=', $dateFrom))
@@ -106,7 +100,6 @@ class PurchaseOrderController extends Controller
             'id' => 'po.id',
             'code' => 'po.code',
             'ref_no' => 'po.ref_no',
-            'supplier' => 'supplier',
             'order_date' => 'po.order_date',
             'lines_count' => 'lines_count',
             'qty_ordered' => 'qty_ordered',
@@ -131,7 +124,6 @@ class PurchaseOrderController extends Controller
                 'id' => $r->id,
                 'code' => $r->code,
                 'ref_no' => $r->ref_no,
-                'supplier' => $r->supplier,
                 'order_date' => $r->order_date ? \Carbon\Carbon::parse($r->order_date)->format('Y-m-d') : null,
                 'lines_count' => (int) $r->lines_count,
                 'qty_ordered' => (int) $r->qty_ordered,
@@ -152,16 +144,14 @@ class PurchaseOrderController extends Controller
 
     public function create()
     {
-        $suppliers = Supplier::orderBy('name')->get();
         $items = Item::orderBy('name')->get();
         $code = 'PO-'.now()->format('ymd').'-'.strtoupper(Str::random(4));
-        return view('admin.procurement.purchase-orders.create', compact('suppliers', 'items', 'code'));
+        return view('admin.procurement.purchase-orders.create', compact('items', 'code'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'supplier_id' => ['required', 'exists:suppliers,id'],
             'order_date' => ['required', 'date'],
             'ref_no' => ['nullable', 'string', 'max:255'],
             'lines' => ['required', 'array', 'min:1'],
@@ -180,7 +170,6 @@ class PurchaseOrderController extends Controller
             }
 
             $po = PurchaseOrder::create([
-                'supplier_id' => $validated['supplier_id'],
                 'code' => $code,
                 'order_date' => $validated['order_date'],
                 'ref_no' => $validated['ref_no'] ?? null,
@@ -202,12 +191,10 @@ class PurchaseOrderController extends Controller
 
     public function edit(PurchaseOrder $purchase_order)
     {
-        $suppliers = Supplier::orderBy('name')->get();
         $items = Item::orderBy('name')->get();
         $purchase_order->load('lines');
         return view('admin.procurement.purchase-orders.edit', [
             'po' => $purchase_order,
-            'suppliers' => $suppliers,
             'items' => $items,
         ]);
     }
@@ -215,7 +202,6 @@ class PurchaseOrderController extends Controller
     public function update(Request $request, PurchaseOrder $purchase_order)
     {
         $validated = $request->validate([
-            'supplier_id' => ['required', 'exists:suppliers,id'],
             'order_date' => ['required', 'date'],
             'ref_no' => ['nullable', 'string', 'max:255'],
             'lines' => ['required', 'array', 'min:1'],
@@ -228,7 +214,6 @@ class PurchaseOrderController extends Controller
 
         DB::transaction(function () use ($validated, $purchase_order) {
             $purchase_order->update([
-                'supplier_id' => $validated['supplier_id'],
                 'order_date' => $validated['order_date'],
                 'ref_no' => $validated['ref_no'] ?? null,
             ]);
@@ -271,19 +256,25 @@ class PurchaseOrderController extends Controller
 
     public function show(PurchaseOrder $purchase_order)
     {
-        $purchase_order->load(['supplier', 'lines.item']);
-        $ordered = (float) $purchase_order->lines->sum('qty_ordered');
-        $fulfilled = 0.0;
-        foreach ($purchase_order->lines as $l) { $fulfilled += (float) $l->fulfilled_qty; }
-        $open = max(0.0, $ordered - $fulfilled);
-        $derivedStatus = $open <= 0 ? 'fulfilled' : ($fulfilled > 0 ? 'partial' : 'open');
+        $purchase_order->load(['lines.item']);
+
+        $ordered = (float) $purchase_order->lines->sum(fn($line) => (float) $line->qty_ordered);
+        $fulfilled = (float) $purchase_order->lines->sum(fn($line) => (float) $line->fulfilled_qty);
+        $open = (float) $purchase_order->lines->sum(fn($line) => (float) $line->remaining_qty);
+
+        $derivedStatus = match (true) {
+            $ordered <= 0 => 'open',
+            $open <= 0.00001 => 'fulfilled',
+            $fulfilled > 0 => 'partial',
+            default => 'open',
+        };
 
         return view('admin.procurement.purchase-orders.show', [
             'po' => $purchase_order,
             'totals' => [
                 'qty_ordered' => $ordered,
                 'qty_fulfilled' => $fulfilled,
-                'qty_open' => $open,
+                'qty_remaining' => $open,
                 'status' => $derivedStatus,
             ],
         ]);

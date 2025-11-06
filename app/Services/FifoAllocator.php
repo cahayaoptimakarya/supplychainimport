@@ -12,14 +12,21 @@ class FifoAllocator
     /**
      * Allocate a receipt item quantity to open PO lines of same item (FIFO by PO order_date then line id).
      */
-    public static function allocateReceiptItem(ReceiptItem $receiptItem): void
+    public static function allocateReceiptItem(ReceiptItem $receiptItem, array $extraLineIds = []): void
     {
         $itemId = $receiptItem->item_id;
         $qty = (float) $receiptItem->qty_received;
-        if ($qty <= 0) return;
+        if ($qty <= 0) {
+            $extraIds = array_unique(array_filter($extraLineIds));
+            if (!empty($extraIds)) {
+                PoLine::whereIn('id', $extraIds)->get()->each->refreshFulfillmentMetrics();
+            }
+            return;
+        }
 
-        DB::transaction(function () use ($itemId, $qty, $receiptItem) {
+        DB::transaction(function () use ($itemId, $qty, $receiptItem, $extraLineIds) {
             $remaining = $qty;
+            $touchedLineIds = $extraLineIds;
             // Fetch open PO lines for this SKU ordered by PO date then line id
             $lines = PoLine::query()
                 ->where('item_id', $itemId)
@@ -45,7 +52,13 @@ class FifoAllocator
                 $alloc->save();
 
                 $remaining -= $take;
+                $touchedLineIds[] = $line->id;
                 if ($remaining <= 0) break;
+            }
+
+            $uniqueIds = array_unique(array_filter($touchedLineIds));
+            if (!empty($uniqueIds)) {
+                PoLine::whereIn('id', $uniqueIds)->get()->each->refreshFulfillmentMetrics();
             }
         });
     }

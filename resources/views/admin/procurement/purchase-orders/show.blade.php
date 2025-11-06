@@ -27,10 +27,6 @@
                         <div class="fs-6">{{ $po->ref_no ?? '-' }}</div>
                     </div>
                     <div class="col-md-3">
-                        <div class="fw-bold text-gray-600">Supplier</div>
-                        <div class="fs-6">{{ optional($po->supplier)->name ?? '-' }}</div>
-                    </div>
-                    <div class="col-md-3">
                         <div class="fw-bold text-gray-600">Order Date</div>
                         <div class="fs-6">{{ optional($po->order_date)->format('Y-m-d') }}</div>
                     </div>
@@ -51,8 +47,8 @@
                         <div class="fs-6">{{ number_format($totals['qty_fulfilled'], 0) }}</div>
                     </div>
                     <div class="col-md-3">
-                        <div class="fw-bold text-gray-600">Qty Open</div>
-                        <div class="fs-6">{{ number_format($totals['qty_open'], 0) }}</div>
+                        <div class="fw-bold text-gray-600">Qty Remaining</div>
+                        <div class="fs-6">{{ number_format($totals['qty_remaining'], 0) }}</div>
                     </div>
                 </div>
 
@@ -72,11 +68,14 @@
                                 <th class="text-end">Qty Ordered</th>
                                 <th class="text-end">Koli Ordered</th>
                                 <th class="text-end">Qty Fulfilled</th>
-                                <th class="text-end">Qty Open</th>
+                                <th class="text-end">Qty Remaining</th>
+                                <th class="text-end">Fulfillment</th>
+                                <th>Status</th>
                                 <th>Notes</th>
                             </tr>
                         </thead>
                         <tbody>
+                            @php $statusBadgeMap = ['open' => 'warning', 'partial' => 'info', 'fulfilled' => 'success']; @endphp
                             @foreach($po->lines as $i => $l)
                                 <tr>
                                     <td>{{ $i+1 }}</td>
@@ -84,7 +83,19 @@
                                     <td class="text-end">{{ number_format($l->qty_ordered, 0) }}</td>
                                     <td class="text-end">{{ $l->koli_ordered === null ? '-' : number_format($l->koli_ordered, 4) }}</td>
                                     <td class="text-end">{{ number_format($l->fulfilled_qty, 0) }}</td>
-                                    <td class="text-end">{{ number_format($l->open_qty, 0) }}</td>
+                                    <td class="text-end">{{ number_format($l->remaining_qty, 0) }}</td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end align-items-center gap-2">
+                                            <span class="fw-semibold">{{ number_format($l->fulfillment_percent, 1) }}%</span>
+                                            <div class="progress w-100" style="max-width: 120px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $l->fulfillment_percent }}%;" aria-valuenow="{{ $l->fulfillment_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    @php $lineStatus = $l->status; @endphp
+                                    <td>
+                                        <span class="badge badge-light-{{ $statusBadgeMap[$lineStatus] ?? 'secondary' }}">{{ strtoupper($lineStatus) }}</span>
+                                    </td>
                                     <td>{{ $l->notes ?? '-' }}</td>
                                 </tr>
                             @endforeach

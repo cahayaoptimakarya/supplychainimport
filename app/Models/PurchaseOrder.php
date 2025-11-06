@@ -10,7 +10,6 @@ class PurchaseOrder extends Model
     use HasFactory;
 
     protected $fillable = [
-        'supplier_id',
         'code',
         'order_date',
         'ref_no',
@@ -20,11 +19,6 @@ class PurchaseOrder extends Model
     protected $casts = [
         'order_date' => 'date',
     ];
-
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class);
-    }
 
     public function lines()
     {

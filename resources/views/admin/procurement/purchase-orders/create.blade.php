@@ -25,22 +25,12 @@
                             <input type="text" class="form-control form-control-white border-0" value="{{ $code }}" disabled readonly />
                             <input type="hidden" name="code" value="{{ $code }}" />
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Supplier</label>
-                            <select name="supplier_id" class="form-select @error('supplier_id') is-invalid @enderror form-select-solid" required>
-                                <option value="">- pilih -</option>
-                                @foreach($suppliers as $s)
-                                    <option value="{{ $s->id }}" @selected(old('supplier_id')==$s->id)>{{ $s->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('supplier_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
                         <div class="col-md-3">
                             <label class="form-label required">Tanggal</label>
                             <input type="text" name="order_date" value="{{ old('order_date', now()->toDateString()) }}" class="form-control js-fp-date @error('order_date') is-invalid @enderror form-control-solid" required />
                             @error('order_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label class="form-label">Ref No</label>
                             <input type="text" name="ref_no" value="{{ old('ref_no') }}" class="form-control @error('ref_no') is-invalid @enderror form-control-solid" />
                             @error('ref_no')<div class="invalid-feedback">{{ $message }}</div>@enderror
