@@ -7,9 +7,12 @@
 @section('page_actions')
 @php use App\Support\Permission as Perm; @endphp
 @php $canCreate = Perm::can(auth()->user(), 'admin.procurement.purchase-orders.index', 'create'); @endphp
-@if($canCreate)
-<a href="{{ route('admin.procurement.purchase-orders.create') }}" class="btn btn-primary">Create PO</a>
-@endif
+<div class="d-flex gap-2">
+    <a href="{{ route('admin.procurement.purchase-orders.report') }}" class="btn btn-light-info">Laporan Pemenuhan</a>
+    @if($canCreate)
+    <a href="{{ route('admin.procurement.purchase-orders.create') }}" class="btn btn-primary">Create PO</a>
+    @endif
+</div>
 @endsection
 
 @section('page_breadcrumbs')

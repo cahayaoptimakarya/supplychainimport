@@ -96,6 +96,8 @@ Route::middleware(['auth', 'verified', 'menu.permission'])->prefix('admin')->as(
     Route::prefix('procurement')->as('procurement.')->group(function () {
         // Purchase Orders
         Route::get('/purchase-orders/data', [\App\Http\Controllers\Admin\PurchaseOrderController::class, 'data'])->name('purchase-orders.data');
+        Route::get('/purchase-orders/fulfillment-report', [\App\Http\Controllers\Admin\PurchaseOrderController::class, 'report'])->name('purchase-orders.report');
+        Route::get('/purchase-orders/fulfillment-report/data', [\App\Http\Controllers\Admin\PurchaseOrderController::class, 'reportData'])->name('purchase-orders.report-data');
         Route::resource('purchase-orders', \App\Http\Controllers\Admin\PurchaseOrderController::class)->names('purchase-orders');
 
         // Shipments
