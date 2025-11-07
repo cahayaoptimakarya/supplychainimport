@@ -55,18 +55,18 @@
                     </div>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-middle table-row-dashed fs-6 gy-5" id="po_table">
+                    <table class="table table-row-bordered table-row-gray-100 table-hover align-middle gy-3 fs-6" id="po_table">
                         <thead>
                         <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
-                            <th>ID</th>
+                            <th class="text-end">ID</th>
                             <th>Code</th>
                             <th>Ref</th>
                             <th>Tgl PO</th>
-                            <th>Lines</th>
-                            <th>Qty Ordered</th>
-                            <th>Koli Ordered</th>
-                            <th>Qty Fulfilled</th>
-                            <th>Qty Open</th>
+                            <th class="text-end">Lines</th>
+                            <th class="text-end">Qty Ordered</th>
+                            <th class="text-end">Koli Ordered</th>
+                            <th class="text-end">Qty Fulfilled</th>
+                            <th class="text-end">Qty Open</th>
                             <th>Status</th>
                             <th class="text-end">Aksi</th>
                         </tr>
@@ -75,10 +75,10 @@
                         <tfoot>
                         <tr class="fw-bold">
                             <th colspan="5" class="text-end">Totals:</th>
-                            <th id="ft_qty_ordered">0</th>
-                            <th id="ft_koli_ordered">0</th>
-                            <th id="ft_qty_fulfilled">0</th>
-                            <th id="ft_qty_open">0</th>
+                            <th id="ft_qty_ordered" class="text-end cell-number">0</th>
+                            <th id="ft_koli_ordered" class="text-end cell-number">0</th>
+                            <th id="ft_qty_fulfilled" class="text-end cell-number">0</th>
+                            <th id="ft_qty_open" class="text-end cell-number">0</th>
                             <th colspan="2"></th>
                         </tr>
                         </tfoot>
@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const canDelete = {{ $canDelete ? 'true' : 'false' }};
     const canView = {{ $canView ? 'true' : 'false' }};
     const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 4 });
+    const formatNumeric = (value) => `<div class="text-end cell-number fw-semibold">${nf.format(value ?? 0)}</div>`;
     const table = $('#po_table').DataTable({
         processing: true,
         serverSide: true,
@@ -126,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         columns: [
-            { data: 'id' },
+            { data: 'id', className: 'cell-number', render: v => formatNumeric(v) },
             { data: 'code', render: function(val, t, row){
                 const href = editTpl.replace(':id', row.id);
                 const text = val || '-';
@@ -134,11 +135,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }},
             { data: 'ref_no', defaultContent: '-' },
             { data: 'order_date' },
-            { data: 'lines_count', defaultContent: 0 },
-            { data: 'qty_ordered', render: v => nf.format(v) },
-            { data: 'koli_ordered', defaultContent: 0, render: v => nf.format(v) },
-            { data: 'qty_fulfilled', render: v => nf.format(v) },
-            { data: 'qty_open', render: v => nf.format(v) },
+            { data: 'lines_count', defaultContent: 0, className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'qty_ordered', className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'koli_ordered', defaultContent: 0, className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'qty_fulfilled', className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'qty_open', className: 'cell-number', render: v => formatNumeric(v) },
             { data: 'status', render: function(val){
                 const map = { open: 'warning', partial: 'info', fulfilled: 'success' };
                 const cls = map[val] || 'secondary';
@@ -213,6 +214,12 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<style>
+    .cell-number {
+        text-align: right !important;
+        font-variant-numeric: tabular-nums;
+    }
+</style>
 @endpush
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

@@ -51,17 +51,17 @@
                     </div>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-middle table-row-dashed fs-6 gy-5" id="rcp_table">
+                    <table class="table table-row-bordered table-row-gray-100 table-hover align-middle gy-3 fs-6" id="rcp_table">
                         <thead>
                         <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
-                            <th>ID</th>
+                            <th class="text-end">ID</th>
                             <th>Code</th>
                             <th>Shipment</th>
                             <th>Warehouse</th>
                             <th>Received At</th>
                             <th>Status</th>
-                            <th>Qty Total</th>
-                            <th>Koli Received</th>
+                            <th class="text-end">Qty Total</th>
+                            <th class="text-end">Koli Received</th>
                             <th class="text-end">Aksi</th>
                         </tr>
                         </thead>
@@ -69,8 +69,8 @@
                         <tfoot>
                         <tr class="fw-bold">
                             <th colspan="6" class="text-end">Totals:</th>
-                            <th id="ft_qty_total">0</th>
-                            <th id="ft_koli_total">0</th>
+                            <th id="ft_qty_total" class="text-end cell-number">0</th>
+                            <th id="ft_koli_total" class="text-end cell-number">0</th>
                         </tr>
                         </tfoot>
                     </table>
@@ -87,6 +87,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const dataUrl = '{{ route('admin.procurement.receipts.data') }}';
     const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 4 });
+    const formatNumeric = (value) => `<span class="cell-number d-block text-end fw-semibold">${nf.format(value ?? 0)}</span>`;
     const editTpl = '{{ route('admin.procurement.receipts.edit', ':id') }}';
     const delTpl  = '{{ route('admin.procurement.receipts.destroy', ':id') }}';
     const table = $('#rcp_table').DataTable({
@@ -108,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         columns: [
-            { data: 'id' },
+            { data: 'id', className: 'cell-number', render: v => formatNumeric(v) },
             { data: 'code' },
             { data: 'shipment' },
             { data: 'warehouse' },
@@ -118,8 +119,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const cls = map[val] || 'secondary';
                 return `<span class="badge badge-light-${cls}">${(val||'-').toUpperCase()}</span>`;
             } },
-            { data: 'qty_total', render: v => nf.format(v) },
-            { data: 'koli_total', defaultContent: 0, render: v => nf.format(v) },
+            { data: 'qty_total', className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'koli_total', defaultContent: 0, className: 'cell-number', render: v => formatNumeric(v) },
             {
                 data: 'id', className: 'text-end', orderable: false, searchable: false,
                 render: function(id){
@@ -171,6 +172,12 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<style>
+    .cell-number {
+        text-align: right !important;
+        font-variant-numeric: tabular-nums;
+    }
+</style>
 @endpush
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

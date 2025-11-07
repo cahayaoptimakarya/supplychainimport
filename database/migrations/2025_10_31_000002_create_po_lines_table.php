@@ -16,7 +16,7 @@ return new class extends Migration
             $table->decimal('qty_fulfilled', 18, 4)->default(0);
             $table->decimal('qty_remaining', 18, 4)->default(0);
             $table->decimal('fulfillment_percent', 9, 4)->default(0);
-            $table->string('status', 20)->default('open');
+            $table->enum('status', ['open', 'partial', 'fulfilled'])->default('open');
             $table->timestamp('fulfillment_refreshed_at')->nullable();
             $table->decimal('koli_ordered', 18, 4)->nullable();
             $table->text('notes')->nullable();

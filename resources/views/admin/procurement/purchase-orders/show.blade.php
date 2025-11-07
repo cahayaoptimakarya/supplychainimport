@@ -12,6 +12,15 @@
     <span class="text-dark">PO {{ $po->code ?? ('#'.$po->id) }}</span>
 @endsection
 
+@push('styles')
+<style>
+    .cell-number {
+        text-align: right !important;
+        font-variant-numeric: tabular-nums;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="container-fluid" id="kt_content_container">
@@ -60,7 +69,7 @@
                     </div>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-middle table-row-dashed fs-6 gy-5">
+                    <table class="table table-row-bordered table-row-gray-100 table-hover align-middle gy-3">
                         <thead>
                             <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
                                 <th>#</th>

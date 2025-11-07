@@ -56,18 +56,18 @@
                     </div>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-middle table-row-dashed fs-6 gy-5" id="ship_table">
+                    <table class="table table-row-bordered table-row-gray-100 table-hover align-middle gy-3 fs-6" id="ship_table">
                         <thead>
                         <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
-                            <th>ID</th>
+                            <th class="text-end">ID</th>
                             <th>Code</th>
                             <th>Container</th>
                             <th>PL</th>
                             <th>ETD</th>
                             <th>ETA</th>
                             <th>Status</th>
-                            <th>Items</th>
-                            <th>Koli Expected</th>
+                            <th class="text-end">Items</th>
+                            <th class="text-end">Koli Expected</th>
                             <th class="text-end">Aksi</th>
                         </tr>
                         </thead>
@@ -75,8 +75,8 @@
                         <tfoot>
                         <tr class="fw-bold">
                             <th colspan="7" class="text-end">Totals:</th>
-                            <th id="ft_items_count">0</th>
-                            <th id="ft_koli_expected">0</th>
+                            <th id="ft_items_count" class="text-end cell-number">0</th>
+                            <th id="ft_koli_expected" class="text-end cell-number">0</th>
                             <th></th>
                         </tr>
                         </tfoot>
@@ -102,6 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const canUpdate = {{ $canUpdate ? 'true' : 'false' }};
     const canDelete = {{ $canDelete ? 'true' : 'false' }};
     const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 4 });
+    const formatNumeric = (value) => `<span class="cell-number d-block text-end fw-semibold">${nf.format(value ?? 0)}</span>`;
     const table = $('#ship_table').DataTable({
         processing: true,
         serverSide: true,
@@ -121,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         columns: [
-            { data: 'id' },
+            { data: 'id', className: 'cell-number', render: v => formatNumeric(v) },
             { data: 'code', render: function(val, t, row){
                 const href = editTpl.replace(':id', row.id);
                 const text = val || '-';
@@ -137,8 +138,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const label = (val||'-').replaceAll('_',' ').toUpperCase();
                 return `<span class="badge badge-light-${cls}">${label}</span>`;
             } },
-            { data: 'items_count', render: v => nf.format(v) },
-            { data: 'koli_expected_total', defaultContent: 0, render: v => nf.format(v) },
+            { data: 'items_count', className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'koli_expected_total', defaultContent: 0, className: 'cell-number', render: v => formatNumeric(v) },
             {
                 data: 'id', className: 'text-end', orderable: false, searchable: false,
                 render: function(id){
@@ -195,6 +196,12 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<style>
+    .cell-number {
+        text-align: right !important;
+        font-variant-numeric: tabular-nums;
+    }
+</style>
 @endpush
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

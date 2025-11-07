@@ -45,7 +45,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table align-middle table-row-dashed fs-6 gy-5" id="po_report_table">
+                    <table class="table table-row-bordered table-row-gray-100 table-hover align-middle gy-3 fs-6" id="po_report_table">
                         <thead>
                             <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
                                 <th>Code</th>
@@ -64,12 +64,12 @@
                         <tfoot>
                             <tr class="fw-bold">
                                 <th colspan="3" class="text-end">Totals:</th>
-                                <th id="ft_qty_ordered" class="text-end">0</th>
-                                <th id="ft_qty_fulfilled" class="text-end">0</th>
-                                <th id="ft_belum" class="text-end">0</th>
-                                <th id="ft_jalan" class="text-end">0</th>
-                                <th id="ft_pelabuhan" class="text-end">0</th>
-                                <th id="ft_gudang" class="text-end">0</th>
+                                <th id="ft_qty_ordered" class="text-end cell-number">0</th>
+                                <th id="ft_qty_fulfilled" class="text-end cell-number">0</th>
+                                <th id="ft_belum" class="text-end cell-number">0</th>
+                                <th id="ft_jalan" class="text-end cell-number">0</th>
+                                <th id="ft_pelabuhan" class="text-end cell-number">0</th>
+                                <th id="ft_gudang" class="text-end cell-number">0</th>
                                 <th></th>
                             </tr>
                         </tfoot>
@@ -82,6 +82,12 @@
 @endsection
 
 @push('styles')
+<style>
+    .cell-number {
+        text-align: right !important;
+        font-variant-numeric: tabular-nums;
+    }
+</style>
 <link href="{{ asset('metronic/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 @endpush
@@ -96,6 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const dataUrl = '{{ route('admin.procurement.purchase-orders.report-data') }}';
     const showTpl = '{{ route('admin.procurement.purchase-orders.show', ':id') }}';
     const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 });
+    const formatNumeric = (value) => `<span class="cell-number d-block text-end fw-semibold">${nf.format(value ?? 0)}</span>`;
     const table = $('#po_report_table').DataTable({
         processing: true,
         serverSide: true,
@@ -122,12 +129,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }},
             { data: 'ref_no', defaultContent: '-' },
             { data: 'order_date', defaultContent: '-' },
-            { data: 'qty_ordered', className: 'text-end', render: v => nf.format(v || 0) },
-            { data: 'qty_fulfilled', className: 'text-end', render: v => nf.format(v || 0) },
-            { data: 'belum_dikirim', className: 'text-end', render: v => nf.format(v || 0) },
-            { data: 'masih_dijalan', className: 'text-end', render: v => nf.format(v || 0) },
-            { data: 'di_pelabuhan', className: 'text-end', render: v => nf.format(v || 0) },
-            { data: 'diterima_gudang', className: 'text-end', render: v => nf.format(v || 0) },
+            { data: 'qty_ordered', className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'qty_fulfilled', className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'belum_dikirim', className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'masih_dijalan', className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'di_pelabuhan', className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'diterima_gudang', className: 'cell-number', render: v => formatNumeric(v) },
             { data: 'status', render: function (val) {
                 const map = { open: 'warning', partial: 'info', fulfilled: 'success' };
                 const cls = map[val] || 'secondary';
