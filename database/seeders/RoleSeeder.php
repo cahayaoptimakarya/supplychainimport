@@ -47,6 +47,7 @@ class RoleSeeder extends Seeder
             ['name' => 'Purchase Orders', 'slug' => 'purchase-orders', 'route' => 'admin.procurement.purchase-orders.index', 'icon' => 'file-text', 'parent_slug' => 'procurement', 'sort_order' => 31],
             ['name' => 'Shipments', 'slug' => 'shipments', 'route' => 'admin.procurement.shipments.index', 'icon' => 'package', 'parent_slug' => 'procurement', 'sort_order' => 32],
             ['name' => 'Warehouse Receipts', 'slug' => 'receipts', 'route' => 'admin.procurement.receipts.index', 'icon' => 'inbox', 'parent_slug' => 'procurement', 'sort_order' => 33],
+            ['name' => 'Status Item', 'slug' => 'item-logistics', 'route' => 'admin.procurement.reports.item-logistics', 'icon' => 'activity', 'parent_slug' => 'procurement', 'sort_order' => 34],
         ];
 
         // Insert parents first

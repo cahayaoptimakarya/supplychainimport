@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\SupplierCategoryController;
 use App\Http\Controllers\Admin\WarehouseController;
+use App\Http\Controllers\Admin\ProcurementReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -99,6 +100,10 @@ Route::middleware(['auth', 'verified', 'menu.permission'])->prefix('admin')->as(
         Route::get('/purchase-orders/fulfillment-report', [\App\Http\Controllers\Admin\PurchaseOrderController::class, 'report'])->name('purchase-orders.report');
         Route::get('/purchase-orders/fulfillment-report/data', [\App\Http\Controllers\Admin\PurchaseOrderController::class, 'reportData'])->name('purchase-orders.report-data');
         Route::resource('purchase-orders', \App\Http\Controllers\Admin\PurchaseOrderController::class)->names('purchase-orders');
+
+        // Procurement reports
+        Route::get('/reports/item-logistics', [ProcurementReportController::class, 'itemLogistics'])->name('reports.item-logistics');
+        Route::get('/reports/item-logistics/data', [ProcurementReportController::class, 'itemLogisticsData'])->name('reports.item-logistics-data');
 
         // Shipments
         Route::get('/shipments/data', [\App\Http\Controllers\Admin\ShipmentController::class, 'data'])->name('shipments.data');
