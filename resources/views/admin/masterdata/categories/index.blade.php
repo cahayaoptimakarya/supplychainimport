@@ -82,6 +82,7 @@
             processing: true,
             serverSide: false,
             dom: 'lrtip',
+            order: [[0, 'desc']],
             ajax: {
                 url: dataUrl,
                 dataSrc: 'data',

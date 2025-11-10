@@ -128,6 +128,7 @@
             processing: true,
             serverSide: false,
             dom: 'lrtip',
+            order: [[0, 'desc']],
             ajax: {
                 url: suppDataUrl,
                 dataSrc: 'data',
@@ -167,6 +168,7 @@
             processing: true,
             serverSide: false,
             dom: 'lrtip',
+            order: [[0, 'desc']],
             ajax: {
                 url: suppCatDataUrl,
                 dataSrc: 'data',

@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
         processing: true,
         serverSide: true,
         searchDelay: 300,
+        order: [[4, 'desc']],
         ajax: {
             url: dataUrl,
             type: 'GET',

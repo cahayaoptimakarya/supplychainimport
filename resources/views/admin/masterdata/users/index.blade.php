@@ -75,6 +75,7 @@
         const refreshMenus = () => { if (window.KTMenu) KTMenu.createInstances(); };
         const dt = $('#users_table').DataTable({
             processing: true, serverSide: false, dom: 'lrtip',
+            order: [[0, 'desc']],
             ajax: { url: dataUrl, dataSrc: 'data' },
             columns: [
                 { data: 'id' },
