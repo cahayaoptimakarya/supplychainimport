@@ -27,56 +27,82 @@
             <button id="btn_reload" class="btn btn-primary btn-sm">Muat Ulang</button>
         </div>
         @php
+$iconBelum = <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="5" width="16" height="16" rx="3"></rect>
+    <path d="M8 3v4M16 3v4"></path>
+    <path d="M4 10h16"></path>
+    <path d="M10 15h4M8 19h8"></path>
+</svg>
+SVG;
+$iconDijalan = <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 7h11v9H3z"></path>
+    <path d="M14 10h4l3 3v3h-7z"></path>
+    <circle cx="7" cy="18" r="2"></circle>
+    <circle cx="17" cy="18" r="2"></circle>
+</svg>
+SVG;
+$iconSudah = <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 13l4 4L19 7"></path>
+    <path d="M4 12V6l8-4 8 4v6"></path>
+    <path d="M10 22v-5a2 2 0 012-2h0a2 2 0 012 2v5"></path>
+</svg>
+SVG;
             $cards = [
                 [
                     'key' => 'belum',
                     'title' => 'Belum Diproses Pengiriman',
                     'subtitle' => 'Qty dari PO yang belum dijadwalkan/berangkat',
                     'badge' => 'badge-light-primary',
-                    'icon' => 'ki-outline ki-calendar',
                     'icon_bg' => 'bg-light-primary',
+                    'icon' => $iconBelum,
                 ],
                 [
                     'key' => 'dijalan',
                     'title' => 'Sedang Dijalan',
                     'subtitle' => 'Qty di shipment yang sudah berangkat / transit',
                     'badge' => 'badge-light-warning',
-                    'icon' => 'ki-outline ki-truck',
                     'icon_bg' => 'bg-light-warning',
+                    'icon' => $iconDijalan,
                 ],
                 [
                     'key' => 'sudah',
                     'title' => 'Sudah Diterima',
                     'subtitle' => 'Qty yang sudah mendarat di gudang',
                     'badge' => 'badge-light-success',
-                    'icon' => 'ki-outline ki-home',
                     'icon_bg' => 'bg-light-success',
+                    'icon' => $iconSudah,
                 ],
             ];
         @endphp
         <div class="row g-5">
             @foreach($cards as $card)
             <div class="col-xl-4">
-                <div class="card h-100 status-card status-card--{{ $card['key'] }}">
-                    <div class="card-header border-0 pt-5 pb-0 d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <div class="symbol symbol-45px me-3">
-                                <div class="symbol-label {{ $card['icon_bg'] }} rounded-circle">
-                                    <i class="{{ $card['icon'] }} fs-2 text-dark"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <h3 class="card-title align-items-start flex-column mb-0">
-                                    <span class="card-label fw-bold text-dark">{{ $card['title'] }}</span>
-                                </h3>
-                                <span class="text-muted fs-7">{{ $card['subtitle'] }}</span>
-                            </div>
+                <div class="status-card status-card--{{ $card['key'] }} h-100 border-0 shadow-sm">
+                    <div class="status-card__hero d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="status-card__eyebrow text-white-75 text-uppercase fw-semibold fs-8">Progress</span>
+                            <h3 class="text-white fw-bold fs-3 mb-1">{{ $card['title'] }}</h3>
+                            <p class="text-white-75 mb-0 fs-7">{{ $card['subtitle'] }}</p>
                         </div>
-                        <span id="count_{{ $card['key'] }}" class="badge {{ $card['badge'] }} fs-7">0</span>
+                        <div class="status-card__icon {{ $card['icon_bg'] }}">
+                            {!! $card['icon'] !!}
+                        </div>
                     </div>
-                    <div class="card-body pt-4 pb-0">
+                    <div class="status-card__counter px-6 py-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-gray-500 fs-8 text-uppercase fw-semibold">Total Item</span>
+                            <div class="text-gray-900 fw-bold fs-2" id="count_{{ $card['key'] }}">0</div>
+                        </div>
+                        <div class="status-card__chip {{ $card['badge'] }}">
+                            <span class="fw-semibold text-gray-700 fs-8">Terupdate otomatis</span>
+                        </div>
+                    </div>
+                    <div class="status-card__list px-6 pb-5">
                         <div class="table-responsive">
-                            <table class="table table-sm table-row-bordered table-row-gray-100 align-middle gy-2 mb-0">
+                            <table class="table table-sm align-middle mb-0 status-card__table">
                                 <thead>
                                     <tr class="text-gray-500 fw-semibold fs-8 text-uppercase">
                                         <th>Item</th>
@@ -87,6 +113,17 @@
                                     <tr><td colspan="2" class="text-muted text-center py-6">Menunggu data...</td></tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="status-card__meta d-flex align-items-center mt-4">
+                            <div class="symbol symbol-35px me-3">
+                                <div class="symbol-label status-card__meta-icon">
+                                    <i class="ki-outline ki-chart fs-3 text-primary"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column">
+                                <span class="text-gray-700 fw-bold">Detail per Item</span>
+                                <span class="text-muted fs-8">Daftar otomatis dari data realtime</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -103,22 +140,81 @@
         text-align: right !important;
         font-variant-numeric: tabular-nums;
     }
-    .status-card .symbol-label {
-        width: 45px;
-        height: 45px;
+    .status-card {
+        border-radius: 1.5rem;
+        overflow: hidden;
+        background: #fff;
+        position: relative;
+    }
+    .status-card__hero {
+        padding: 1.75rem;
+        background: linear-gradient(135deg, #EEF2FF, #D1DCFF);
+    }
+    .status-card__icon {
+        width: 60px;
+        height: 60px;
         display: flex;
         align-items: center;
         justify-content: center;
+        border-radius: 16px;
+        background: rgba(255,255,255,.2);
     }
-    .status-card table tbody tr td:first-child span {
+    .status-card__icon svg {
+        color: #fff;
+        width: 28px;
+        height: 28px;
+    }
+    .status-card__counter {
+        border-bottom: 1px dashed #edf1f5;
+    }
+    .status-card__chip {
+        border-radius: 999px;
+        padding: .3rem .9rem;
+    }
+    .status-card__list {
+        background: #fff;
+    }
+    .status-card__table thead tr th {
+        border-bottom-width: 0;
+    }
+    .status-card__table tbody tr td {
+        border-bottom: 0;
+        padding: .65rem 0;
+    }
+    .status-card__table tbody tr + tr td {
+        border-top: 1px dashed #eff2f5;
+    }
+    .status-card__table tbody tr td:first-child span {
         color: #152036;
     }
-    .status-card table tbody tr td:first-child .badge-dot {
+    .status-card__table .badge-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         display: inline-block;
         margin-right: 6px;
+    }
+    .status-card__meta-icon {
+        background: #eef2ff;
+        border-radius: 12px;
+    }
+    .status-card--belum .status-card__hero {
+        background: linear-gradient(135deg, #5B61FF, #89A8FF);
+    }
+    .status-card--dijalan .status-card__hero {
+        background: linear-gradient(135deg, #FFB347, #FFCC70);
+    }
+    .status-card--sudah .status-card__hero {
+        background: linear-gradient(135deg, #38D39F, #55E7C4);
+    }
+    .status-card--belum .status-card__icon { background: rgba(255,255,255,.25); }
+    .status-card--dijalan .status-card__icon { background: rgba(255,255,255,.25); }
+    .status-card--sudah .status-card__icon { background: rgba(255,255,255,.25); }
+    .status-card__hero .status-card__eyebrow {
+        letter-spacing: .2em;
+    }
+    @media (max-width: 1200px) {
+        .status-card__hero, .status-card__list, .status-card__counter { padding-left: 1.5rem; padding-right: 1.5rem; }
     }
 </style>
 @endpush
