@@ -52,8 +52,22 @@
     const dataUrl   = '{{ route('admin.masterdata.users.data') }}';
     const editTpl   = '{{ route('admin.masterdata.users.edit', ':id') }}';
     const delTpl    = '{{ route('admin.masterdata.users.destroy', ':id') }}';
+    const renderActionsDropdown = (items) => {
+        if (!items.length) return '-';
+        return `
+            <div class="dropdown text-end">
+                <button class="btn btn-sm btn-light btn-active-light-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Actions
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    ${items.join('')}
+                </div>
+            </div>
+        `.trim();
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
-        $('#users_table').DataTable({
+        const dt = $('#users_table').DataTable({
             processing: true, serverSide: false, dom: 'lrtip',
             ajax: { url: dataUrl, dataSrc: 'data' },
             columns: [
@@ -66,19 +80,20 @@
                     const delUrl  = delTpl.replace(':id', data);
                     const canUpdate = {{ \App\Support\Permission::can(auth()->user(), 'admin.masterdata.users.index', 'update') ? 'true' : 'false' }};
                     const canDelete = {{ \App\Support\Permission::can(auth()->user(), 'admin.masterdata.users.index', 'delete') ? 'true' : 'false' }};
-                    let html = '';
-                    if (canUpdate) html += `<a href=\"${editUrl}\" class=\"btn btn-light-primary btn-sm me-2\">Edit</a>`;
-                    if (canDelete) html += `<button type=\"button\" data-url=\"${delUrl}\" data-id=\"${data}\" class=\"btn btn-light-danger btn-sm btn-delete\">Hapus</button>`;
-                    return html || '-';
+                    const menuItems = [];
+                    if (canUpdate) menuItems.push(`<a href="${editUrl}" class="dropdown-item px-3">Edit</a>`);
+                    if (canDelete) menuItems.push(`<a href="#" data-url="${delUrl}" data-id="${data}" class="dropdown-item px-3 text-danger btn-delete">Hapus</a>`);
+                    return renderActionsDropdown(menuItems);
                 }}
             ]
         });
 
-        $('#users_table').on('click', '.btn-delete', function() {
+        $('#users_table').on('click', '.btn-delete', function(e) {
+            e.preventDefault();
             const url = this.getAttribute('data-url');
             if (!confirm('Yakin ingin menghapus User ini?')) return;
             fetch(url, { method:'POST', headers:{ 'X-CSRF-TOKEN': csrfToken }, body: new URLSearchParams({ _method:'DELETE' }) })
-                .then(res => { if (res.ok) $('#users_table').DataTable().ajax.reload(null, false); else alert('Gagal menghapus user'); })
+                .then(res => { if (res.ok) dt.ajax.reload(null, false); else alert('Gagal menghapus user'); })
                 .catch(()=> alert('Gagal menghapus user'));
         });
     });

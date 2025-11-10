@@ -132,6 +132,19 @@
     const catsDelTpl     = '{{ route('admin.masterdata.categories.destroy', ':id') }}';
     const canCatUpdate   = {{ \App\Support\Permission::can(auth()->user(), 'admin.masterdata.categories.index', 'update') ? 'true' : 'false' }};
     const canCatDelete   = {{ \App\Support\Permission::can(auth()->user(), 'admin.masterdata.categories.index', 'delete') ? 'true' : 'false' }};
+    const renderActionsDropdown = (items) => {
+        if (!items.length) return '-';
+        return `
+            <div class="dropdown text-end">
+                <button class="btn btn-sm btn-light btn-active-light-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Actions
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    ${items.join('')}
+                </div>
+            </div>
+        `.trim();
+    };
 
     document.addEventListener('DOMContentLoaded', function() {
         const table = $('#items_table').DataTable({
@@ -159,13 +172,13 @@
                     orderable: false,
                     searchable: false,
                     className: 'text-end',
-                    render: function (data, type, row) {
+                    render: function (data) {
                         const editUrl = itemsEditTpl.replace(':id', data);
                         const delUrl  = itemsDelTpl.replace(':id', data);
-                        let html = '';
-                        if (canItemUpdate) html += `<a href=\"${editUrl}\" class=\"btn btn-light-primary btn-sm me-2\">Edit</a>`;
-                        if (canItemDelete) html += `<button type=\"button\" data-id=\"${data}\" data-url=\"${delUrl}\" class=\"btn btn-light-danger btn-sm btn-delete\">Hapus</button>`;
-                        return html || '-';
+                        const menuItems = [];
+                        if (canItemUpdate) menuItems.push(`<a href="${editUrl}" class="dropdown-item px-3">Edit</a>`);
+                        if (canItemDelete) menuItems.push(`<a href="#" data-id="${data}" data-url="${delUrl}" class="dropdown-item px-3 text-danger btn-delete">Hapus</a>`);
+                        return renderActionsDropdown(menuItems);
                     }
                 }
             ]
@@ -194,20 +207,19 @@
                     searchable: false,
                     className: 'text-end',
                     render: function (data, type, row) {
-                        const editUrl = catsEditTpl.replace(':id', data);
                         const delUrl  = catsDelTpl.replace(':id', data);
-                        let html = '';
-                        // Edit opens modal
-                        if (canCatUpdate) html += `<button type=\"button\" data-id=\"${data}\" data-name=\"${row.name || ''}\" class=\"btn btn-light-primary btn-sm me-2 btn-edit-cat\">Edit</button>`;
-                        if (canCatDelete) html += `<button type=\"button\" data-id=\"${data}\" data-url=\"${delUrl}\" class=\"btn btn-light-danger btn-sm btn-delete-cat\">Hapus</button>`;
-                        return html || '-';
+                        const menuItems = [];
+                        if (canCatUpdate) menuItems.push(`<a href="#" data-id="${data}" data-name="${row.name || ''}" class="dropdown-item px-3 btn-edit-cat">Edit</a>`);
+                        if (canCatDelete) menuItems.push(`<a href="#" data-id="${data}" data-url="${delUrl}" class="dropdown-item px-3 text-danger btn-delete-cat">Hapus</a>`);
+                        return renderActionsDropdown(menuItems);
                     }
                 }
             ]
         });
 
         // Delete handlers
-        $('#items_table').on('click', '.btn-delete', function() {
+        $('#items_table').on('click', '.btn-delete', function(e) {
+            e.preventDefault();
             const url = this.getAttribute('data-url');
             if (!confirm('Yakin ingin menghapus item ini?')) return;
             fetch(url, {
@@ -219,7 +231,8 @@
             }).catch(() => alert('Gagal menghapus item'));
         });
 
-        $('#item_categories_table').on('click', '.btn-delete-cat', function() {
+        $('#item_categories_table').on('click', '.btn-delete-cat', function(e) {
+            e.preventDefault();
             const url = this.getAttribute('data-url');
             if (!confirm('Yakin ingin menghapus kategori ini?')) return;
             fetch(url, {
@@ -305,7 +318,8 @@
             createBtn.addEventListener('click', function(){ openCatModal('create'); });
         }
 
-        $('#item_categories_table').on('click', '.btn-edit-cat', function(){
+        $('#item_categories_table').on('click', '.btn-edit-cat', function(e){
+            e.preventDefault();
             const id = this.getAttribute('data-id');
             const name = this.getAttribute('data-name');
             openCatModal('edit', { id, name });

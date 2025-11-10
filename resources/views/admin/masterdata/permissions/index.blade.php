@@ -35,7 +35,14 @@
                                     <td>{{ $r->slug }}</td>
                                     <td>{{ $r->users_count }}</td>
                                     <td class="text-end">
-                                        <a href="{{ route('admin.masterdata.permissions.edit', $r->id) }}" class="btn btn-light-primary btn-sm">Atur Permission</a>
+                                        <div class="dropdown text-end">
+                                            <button class="btn btn-sm btn-light btn-active-light-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Actions
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end">
+                                                <a href="{{ route('admin.masterdata.permissions.edit', $r->id) }}" class="dropdown-item px-3">Atur Permission</a>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -47,4 +54,3 @@
     </div>
 </div>
 @endsection
-

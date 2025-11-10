@@ -99,10 +99,24 @@
 <script src="{{ asset('metronic/plugins/custom/datatables/datatables.bundle.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = '{{ csrf_token() }}';
     const dataUrl = '{{ route('admin.procurement.purchase-orders.data') }}';
     const editTpl = '{{ route('admin.procurement.purchase-orders.edit', ':id') }}';
     const viewTpl = '{{ route('admin.procurement.purchase-orders.show', ':id') }}';
     const delTpl  = '{{ route('admin.procurement.purchase-orders.destroy', ':id') }}';
+    const renderActionsDropdown = (items) => {
+        if (!items.length) return '-';
+        return `
+            <div class="dropdown text-end">
+                <button class="btn btn-sm btn-light btn-active-light-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Actions
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    ${items.join('')}
+                </div>
+            </div>
+        `.trim();
+    };
     const canUpdate = {{ $canUpdate ? 'true' : 'false' }};
     const canDelete = {{ $canDelete ? 'true' : 'false' }};
     const canView = {{ $canView ? 'true' : 'false' }};
@@ -149,11 +163,11 @@ document.addEventListener('DOMContentLoaded', function() {
             {
                 data: 'id', className: 'text-end', orderable: false, searchable: false,
                 render: function(id, type, row){
-                    let html='';
-                    if (canView) html += `<a href=\"${viewTpl.replace(':id', id)}\" class=\"btn btn-light-info btn-sm me-2\">View</a>`;
-                    if (canUpdate) html += `<a href=\"${editTpl.replace(':id', id)}\" class=\"btn btn-light-primary btn-sm me-2\">Edit</a>`;
-                    if (canDelete) html += `<form method=\"POST\" action=\"${delTpl.replace(':id', id)}\" style=\"display:inline\">@csrf @method('DELETE')<button class=\"btn btn-light-danger btn-sm\" onclick=\"return confirm('Hapus PO ini?')\">Hapus</button></form>`;
-                    return html || '-';
+                    const menuItems = [];
+                    if (canView) menuItems.push(`<a href="${viewTpl.replace(':id', id)}" class="dropdown-item px-3">View</a>`);
+                    if (canUpdate) menuItems.push(`<a href="${editTpl.replace(':id', id)}" class="dropdown-item px-3">Edit</a>`);
+                    if (canDelete) menuItems.push(`<a href="#" data-url="${delTpl.replace(':id', id)}" data-id="${id}" class="dropdown-item px-3 text-danger btn-delete">Hapus</a>`);
+                    return renderActionsDropdown(menuItems);
                 }
             }
         ],
@@ -196,6 +210,24 @@ document.addEventListener('DOMContentLoaded', function() {
         if (topSearch) topSearch.value='';
         table.search('');
         table.ajax.reload();
+    });
+
+    $('#po_table').on('click', '.btn-delete', function(e){
+        e.preventDefault();
+        const url = this.getAttribute('data-url');
+        if (!url) return;
+        if (!confirm('Hapus PO ini?')) return;
+        fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+            body: new URLSearchParams({ _method: 'DELETE' })
+        }).then(res => {
+            if (res.ok) {
+                table.ajax.reload(null, false);
+            } else {
+                alert('Gagal menghapus PO');
+            }
+        }).catch(() => alert('Gagal menghapus PO'));
     });
 
     // Hook topbar global search to this table (debounced)

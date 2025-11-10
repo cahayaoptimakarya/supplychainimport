@@ -85,11 +85,25 @@
 <script src="{{ asset('metronic/plugins/custom/datatables/datatables.bundle.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = '{{ csrf_token() }}';
     const dataUrl = '{{ route('admin.procurement.receipts.data') }}';
     const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 4 });
     const formatNumeric = (value) => `<span class="cell-number d-block text-end fw-semibold">${nf.format(value ?? 0)}</span>`;
     const editTpl = '{{ route('admin.procurement.receipts.edit', ':id') }}';
     const delTpl  = '{{ route('admin.procurement.receipts.destroy', ':id') }}';
+    const renderActionsDropdown = (items) => {
+        if (!items.length) return '-';
+        return `
+            <div class="dropdown text-end">
+                <button class="btn btn-sm btn-light btn-active-light-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Actions
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    ${items.join('')}
+                </div>
+            </div>
+        `.trim();
+    };
     const table = $('#rcp_table').DataTable({
         processing: true,
         serverSide: true,
@@ -126,11 +140,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 render: function(id){
                     const editUrl = editTpl.replace(':id', id);
                     const delUrl = delTpl.replace(':id', id);
-                    return `
-                        <a href="${editUrl}" class="btn btn-light-primary btn-sm me-2">Edit</a>
-                        <form method="POST" action="${delUrl}" style="display:inline">@csrf @method('DELETE')
-                            <button class="btn btn-light-danger btn-sm" onclick="return confirm('Hapus receipt ini?')">Hapus</button>
-                        </form>`;
+                    const menuItems = [
+                        `<a href="${editUrl}" class="dropdown-item px-3">Edit</a>`,
+                        `<a href="#" data-url="${delUrl}" data-id="${id}" class="dropdown-item px-3 text-danger btn-delete">Hapus</a>`
+                    ];
+                    return renderActionsDropdown(menuItems);
                 }
             }
         ],
@@ -168,6 +182,24 @@ document.addEventListener('DOMContentLoaded', function() {
             tmr = setTimeout(()=> run(q), 200);
         });
     })();
+
+    $('#rcp_table').on('click', '.btn-delete', function(e){
+        e.preventDefault();
+        const url = this.getAttribute('data-url');
+        if (!url) return;
+        if (!confirm('Hapus receipt ini?')) return;
+        fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+            body: new URLSearchParams({ _method: 'DELETE' })
+        }).then(res => {
+            if (res.ok) {
+                table.ajax.reload(null, false);
+            } else {
+                alert('Gagal menghapus receipt');
+            }
+        }).catch(() => alert('Gagal menghapus receipt'));
+    });
 });
 </script>
 @push('styles')

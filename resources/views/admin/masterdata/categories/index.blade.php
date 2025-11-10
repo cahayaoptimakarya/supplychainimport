@@ -57,9 +57,22 @@
     const delTpl    = '{{ route('admin.masterdata.categories.destroy', ':id') }}';
     const canUpdate = {{ \App\Support\Permission::can(auth()->user(), 'admin.masterdata.categories.index', 'update') ? 'true' : 'false' }};
     const canDelete = {{ \App\Support\Permission::can(auth()->user(), 'admin.masterdata.categories.index', 'delete') ? 'true' : 'false' }};
+    const renderActionsDropdown = (items) => {
+        if (!items.length) return '-';
+        return `
+            <div class="dropdown text-end">
+                <button class="btn btn-sm btn-light btn-active-light-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Actions
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    ${items.join('')}
+                </div>
+            </div>
+        `.trim();
+    };
 
     document.addEventListener('DOMContentLoaded', function() {
-        $('#categories_table').DataTable({
+        const dt = $('#categories_table').DataTable({
             processing: true,
             serverSide: false,
             dom: 'lrtip',
@@ -80,19 +93,20 @@
                     orderable: false,
                     searchable: false,
                     className: 'text-end',
-                    render: function (data, type, row) {
+                    render: function (data) {
                         const editUrl = editTpl.replace(':id', data);
                         const delUrl  = delTpl.replace(':id', data);
-                        let html = '';
-                        if (canUpdate) html += `<a href="${editUrl}" class="btn btn-light-primary btn-sm me-2">Edit</a>`;
-                        if (canDelete) html += `<button type="button" data-id="${data}" data-url="${delUrl}" class="btn btn-light-danger btn-sm btn-delete">Hapus</button>`;
-                        return html || '-';
+                        const menuItems = [];
+                        if (canUpdate) menuItems.push(`<a href="${editUrl}" class="dropdown-item px-3">Edit</a>`);
+                        if (canDelete) menuItems.push(`<a href="#" data-id="${data}" data-url="${delUrl}" class="dropdown-item px-3 text-danger btn-delete">Hapus</a>`);
+                        return renderActionsDropdown(menuItems);
                     }
                 }
             ]
         });
 
-        $('#categories_table').on('click', '.btn-delete', function() {
+        $('#categories_table').on('click', '.btn-delete', function(e) {
+            e.preventDefault();
             const url = this.getAttribute('data-url');
             if (!confirm('Yakin ingin menghapus kategori ini?')) return;
             fetch(url, {
@@ -101,7 +115,7 @@
                 body: new URLSearchParams({ _method: 'DELETE' })
             }).then(res => {
                 if (res.ok) {
-                    $('#categories_table').DataTable().ajax.reload(null, false);
+                    dt.ajax.reload(null, false);
                 } else {
                     alert('Gagal menghapus kategori');
                 }
@@ -110,9 +124,8 @@
 
         const globalInput = document.getElementById('global_search');
         if (globalInput) {
-            const catTable = $('#categories_table').DataTable();
             globalInput.addEventListener('input', function() {
-                catTable.search(this.value).draw();
+                dt.search(this.value).draw();
             });
         }
     });

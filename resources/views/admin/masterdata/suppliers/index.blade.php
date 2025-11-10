@@ -103,6 +103,19 @@
     const suppCatDelTpl  = '{{ route('admin.masterdata.supplier-categories.destroy', ':id') }}';
     const canSuppCatUpdate = {{ \App\Support\Permission::can(auth()->user(), 'admin.masterdata.supplier-categories.index', 'update') ? 'true' : 'false' }};
     const canSuppCatDelete = {{ \App\Support\Permission::can(auth()->user(), 'admin.masterdata.supplier-categories.index', 'delete') ? 'true' : 'false' }};
+    const renderActionsDropdown = (items) => {
+        if (!items.length) return '-';
+        return `
+            <div class="dropdown text-end">
+                <button class="btn btn-sm btn-light btn-active-light-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Actions
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    ${items.join('')}
+                </div>
+            </div>
+        `.trim();
+    };
 
     document.addEventListener('DOMContentLoaded', function() {
         const table = $('#suppliers_table').DataTable({
@@ -129,13 +142,13 @@
                     orderable: false,
                     searchable: false,
                     className: 'text-end',
-                    render: function (data, type, row) {
+                    render: function (data) {
                         const editUrl = suppEditTpl.replace(':id', data);
                         const delUrl  = suppDelTpl.replace(':id', data);
-                        let html = '';
-                        if (canSuppUpdate) html += `<a href=\"${editUrl}\" class=\"btn btn-light-primary btn-sm me-2\">Edit</a>`;
-                        if (canSuppDelete) html += `<button type=\"button\" data-id=\"${data}\" data-url=\"${delUrl}\" class=\"btn btn-light-danger btn-sm btn-delete\">Hapus</button>`;
-                        return html || '-';
+                        const menuItems = [];
+                        if (canSuppUpdate) menuItems.push(`<a href="${editUrl}" class="dropdown-item px-3">Edit</a>`);
+                        if (canSuppDelete) menuItems.push(`<a href="#" data-id="${data}" data-url="${delUrl}" class="dropdown-item px-3 text-danger btn-delete">Hapus</a>`);
+                        return renderActionsDropdown(menuItems);
                     }
                 }
             ]
@@ -164,18 +177,22 @@
                     searchable: false,
                     className: 'text-end',
                     render: function (data, type, row) {
-                        const editUrl = suppCatEditTpl.replace(':id', data);
                         const delUrl  = suppCatDelTpl.replace(':id', data);
-                        let html = '';
-                        if (canSuppCatUpdate) html += `<button type=\"button\" data-id=\"${data}\" data-name=\"${row.name || ''}\" class=\"btn btn-light-primary btn-sm me-2 btn-edit-suppcat\">Edit</button>`;
-                        if (canSuppCatDelete) html += `<button type=\"button\" data-id=\"${data}\" data-url=\"${delUrl}\" class=\"btn btn-light-danger btn-sm btn-delete-cat\">Hapus</button>`;
-                        return html || '-';
+                        const menuItems = [];
+                        if (canSuppCatUpdate) {
+                            menuItems.push(`<a href="#" data-id="${data}" data-name="${row.name || ''}" class="dropdown-item px-3 btn-edit-suppcat">Edit</a>`);
+                        }
+                        if (canSuppCatDelete) {
+                            menuItems.push(`<a href="#" data-id="${data}" data-url="${delUrl}" class="dropdown-item px-3 text-danger btn-delete-cat">Hapus</a>`);
+                        }
+                        return renderActionsDropdown(menuItems);
                     }
                 }
             ]
         });
 
-        $('#suppliers_table').on('click', '.btn-delete', function() {
+        $('#suppliers_table').on('click', '.btn-delete', function(e) {
+            e.preventDefault();
             const url = this.getAttribute('data-url');
             if (!confirm('Yakin ingin menghapus supplier ini?')) return;
             fetch(url, {
@@ -204,7 +221,8 @@
         }
 
         // Delete handlers
-        $('#supplier_categories_table').on('click', '.btn-delete-cat', function() {
+        $('#supplier_categories_table').on('click', '.btn-delete-cat', function(e) {
+            e.preventDefault();
             const url = this.getAttribute('data-url');
             if (!confirm('Yakin ingin menghapus kategori supplier ini?')) return;
             fetch(url, {
@@ -278,7 +296,8 @@
             createBtn.addEventListener('click', function(){ openSuppCatModal('create'); });
         }
 
-        $('#supplier_categories_table').on('click', '.btn-edit-suppcat', function(){
+        $('#supplier_categories_table').on('click', '.btn-edit-suppcat', function(e){
+            e.preventDefault();
             const id = this.getAttribute('data-id');
             const name = this.getAttribute('data-name');
             openSuppCatModal('edit', { id, name });
