@@ -157,10 +157,11 @@ SVG;
         align-items: center;
         justify-content: center;
         border-radius: 16px;
-        background: rgba(255,255,255,.2);
+        background: rgba(255,255,255,.25);
+        color: #1f2937;
     }
     .status-card__icon svg {
-        color: #fff;
+        color: inherit;
         width: 28px;
         height: 28px;
     }
@@ -207,9 +208,18 @@ SVG;
     .status-card--sudah .status-card__hero {
         background: linear-gradient(135deg, #38D39F, #55E7C4);
     }
-    .status-card--belum .status-card__icon { background: rgba(255,255,255,.25); }
-    .status-card--dijalan .status-card__icon { background: rgba(255,255,255,.25); }
-    .status-card--sudah .status-card__icon { background: rgba(255,255,255,.25); }
+    .status-card--belum .status-card__icon {
+        background: rgba(255,255,255,.3);
+        color: #1d3cff;
+    }
+    .status-card--dijalan .status-card__icon {
+        background: rgba(255,255,255,.3);
+        color: #c2410c;
+    }
+    .status-card--sudah .status-card__icon {
+        background: rgba(255,255,255,.3);
+        color: #0f9156;
+    }
     .status-card__hero .status-card__eyebrow {
         letter-spacing: .2em;
     }
