@@ -10,6 +10,30 @@
     <link href="{{ asset('metronic/plugins/custom/fullcalendar/fullcalendar.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('metronic/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('metronic/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
+    <style>
+        .select2-container .select2-selection--single {
+            height: 42px;
+            padding: 0.5rem 1rem;
+            border-radius: 0.475rem;
+            border: 1px solid #e4e6ef;
+        }
+        .form-select.form-select-solid + .select2-container .select2-selection--single {
+            background-color: #f5f8fa;
+            border-color: #f5f8fa;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 30px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px;
+            right: 12px;
+        }
+        .select2-container .select2-selection--multiple {
+            min-height: 42px;
+            border-radius: 0.475rem;
+            border: 1px solid #e4e6ef;
+        }
+    </style>
     @stack('styles')
     @yield('styles')
     <meta name="description" content="Import Analytics dashboard" />
@@ -53,6 +77,53 @@
     <script src="{{ asset('metronic/js/custom/apps/chat/chat.js') }}"></script>
     <script src="{{ asset('metronic/js/custom/modals/create-app.js') }}"></script>
     <script src="{{ asset('metronic/js/custom/modals/upgrade-plan.js') }}"></script>
+    <script>
+        (function(){
+            const initSelect2 = (context = document) => {
+                if (!window.jQuery || !jQuery.fn.select2) return;
+                jQuery('select', context)
+                    .not('.no-select2')
+                    .each(function(){
+                        const $el = jQuery(this);
+                        if ($el.data('select2')) return;
+                        const dropdownParent = $el.closest('.modal');
+                        const placeholder = $el.attr('placeholder') || $el.data('placeholder') || $el.attr('data-placeholder') || '';
+                        $el.select2({
+                            width: $el.data('select2-width') || '100%',
+                            placeholder,
+                            allowClear: !($el.prop('required')) && placeholder !== '',
+                            dropdownParent: dropdownParent.length ? dropdownParent : jQuery(document.body),
+                        });
+                    });
+            };
+
+            const observeSelects = () => {
+                if (!window.MutationObserver) return;
+                const observer = new MutationObserver(mutations => {
+                    for (const mutation of mutations) {
+                        mutation.addedNodes.forEach(node => {
+                            if (node.nodeType !== 1) return;
+                            const isSelect = node.matches && node.matches('select');
+                            const hasSelect = node.querySelector && node.querySelector('select');
+                            if (isSelect || hasSelect) {
+                                initSelect2(node);
+                            }
+                        });
+                    }
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            };
+
+            document.addEventListener('DOMContentLoaded', function(){
+                initSelect2();
+                observeSelects();
+                document.addEventListener('select2:reinit', event => {
+                    const ctx = event.detail && event.detail.context ? event.detail.context : document;
+                    initSelect2(ctx);
+                });
+            });
+        })();
+    </script>
     @stack('scripts')
     @yield('scripts')
 </body>
