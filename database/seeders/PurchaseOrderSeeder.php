@@ -41,12 +41,14 @@ class PurchaseOrderSeeder extends Seeder
             foreach ($picked as $it) {
                 // integer qty only
                 $qty = mt_rand(1, 500); // 1 - 500
-                $koli = rand(0,1) ? null : round(mt_rand(1, 1000) / 10, 4); // nullable or random
+                $cnt = rand(0,1) ? null : round(mt_rand(1, 1000) / 10, 4); // nullable or random
+                $pcsCnt = $cnt ? sprintf('%d pcs / %s cnt', $qty, $cnt) : null;
                 PoLine::create([
                     'purchase_order_id' => $po->id,
                     'item_id' => $it->id,
                     'qty_ordered' => $qty,
-                    'koli_ordered' => $koli,
+                    'cnt_ordered' => $cnt,
+                    'pcs_cnt' => $pcsCnt,
                     'notes' => rand(0,1) ? null : 'Catatan line '.Str::upper(Str::random(3)),
                 ]);
             }

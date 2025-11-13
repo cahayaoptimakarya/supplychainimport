@@ -61,7 +61,8 @@
                                 <tr>
                                     <th>Item</th>
                                     <th width="160">Qty Expected</th>
-                                    <th width="140">Koli Expected</th>
+                                    <th width="140">Cnt Expected</th>
+                                    <th width="160">PCS / CNT</th>
                                     <th width="60"></th>
                                 </tr>
                             </thead>
@@ -93,7 +94,10 @@
             <input type="number" step="1" min="1" name="items[__i__][qty_expected]" class="form-control form-control-solid" required />
         </td>
         <td>
-            <input type="number" step="0.0001" min="0" name="items[__i__][koli_expected]" class="form-control form-control-solid" />
+            <input type="number" step="0.0001" min="0" name="items[__i__][cnt_expected]" class="form-control form-control-solid" />
+        </td>
+        <td>
+            <input type="text" name="items[__i__][pcs_cnt]" class="form-control form-control-solid" placeholder="mis. 10 pcs / 1 cnt" />
         </td>
         <td class="text-end">
             <button type="button" class="btn btn-light-danger btn-sm btn-del-item">Hapus</button>
@@ -132,8 +136,10 @@ document.addEventListener('DOMContentLoaded', function(){
             const qi = tr.querySelector('input[name$="[qty_expected]"]');
             qi.value = (data.qty_expected !== undefined && data.qty_expected !== null && data.qty_expected !== '')
                 ? String(parseInt(data.qty_expected, 10)) : '';
-            const ke = tr.querySelector('input[name$="[koli_expected]"]');
-            if (ke) ke.value = data.koli_expected || '';
+            const cntInput = tr.querySelector('input[name$="[cnt_expected]"]');
+            if (cntInput) cntInput.value = data.cnt_expected || '';
+            const pcsInput = tr.querySelector('input[name$="[pcs_cnt]"]');
+            if (pcsInput) pcsInput.value = data.pcs_cnt || '';
         }
         tr.querySelector('.btn-del-item').addEventListener('click', ()=> tr.remove());
     }
@@ -144,7 +150,8 @@ document.addEventListener('DOMContentLoaded', function(){
                 'id' => $l->id,
                 'item_id' => $l->item_id,
                 'qty_expected' => (int) $l->qty_expected,
-                'koli_expected' => $l->koli_expected,
+                'cnt_expected' => $l->cnt_expected,
+                'pcs_cnt' => $l->pcs_cnt,
             ];
         })->values();
     @endphp

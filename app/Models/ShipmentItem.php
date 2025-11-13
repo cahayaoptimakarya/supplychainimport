@@ -13,7 +13,8 @@ class ShipmentItem extends Model
         'shipment_id',
         'item_id',
         'qty_expected',
-        'koli_expected',
+        'cnt_expected',
+        'pcs_cnt',
     ];
 
     public function shipment()

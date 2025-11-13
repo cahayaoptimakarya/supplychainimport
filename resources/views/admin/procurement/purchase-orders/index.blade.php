@@ -64,7 +64,7 @@
                             <th>Tgl PO</th>
                             <th class="text-end">Lines</th>
                             <th class="text-end">Qty Ordered</th>
-                            <th class="text-end">Koli Ordered</th>
+                            <th class="text-end">Cnt Ordered</th>
                             <th class="text-end">Qty Fulfilled</th>
                             <th class="text-end">Qty Open</th>
                             <th>Status</th>
@@ -76,7 +76,7 @@
                         <tr class="fw-bold">
                             <th colspan="5" class="text-end">Totals:</th>
                             <th id="ft_qty_ordered" class="text-end cell-number">0</th>
-                            <th id="ft_koli_ordered" class="text-end cell-number">0</th>
+                            <th id="ft_cnt_ordered" class="text-end cell-number">0</th>
                             <th id="ft_qty_fulfilled" class="text-end cell-number">0</th>
                             <th id="ft_qty_open" class="text-end cell-number">0</th>
                             <th colspan="2"></th>
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
             { data: 'order_date' },
             { data: 'lines_count', defaultContent: 0, className: 'cell-number', render: v => formatNumeric(v) },
             { data: 'qty_ordered', className: 'cell-number', render: v => formatNumeric(v) },
-            { data: 'koli_ordered', defaultContent: 0, className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'cnt_ordered', defaultContent: 0, className: 'cell-number', render: v => formatNumeric(v) },
             { data: 'qty_fulfilled', className: 'cell-number', render: v => formatNumeric(v) },
             { data: 'qty_open', className: 'cell-number', render: v => formatNumeric(v) },
             { data: 'status', render: function(val){
@@ -178,15 +178,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         ],
         footerCallback: function(row, data){
-            let qtyOrder = 0, koliOrder = 0, qtyFulfill = 0, qtyOpen = 0;
+            let qtyOrder = 0, cntOrder = 0, qtyFulfill = 0, qtyOpen = 0;
             data.forEach(r => {
                 qtyOrder += parseFloat(r.qty_ordered || 0);
-                koliOrder += parseFloat(r.koli_ordered || 0);
+                cntOrder += parseFloat(r.cnt_ordered || 0);
                 qtyFulfill += parseFloat(r.qty_fulfilled || 0);
                 qtyOpen += parseFloat(r.qty_open || 0);
             });
             document.getElementById('ft_qty_ordered').textContent = nf.format(qtyOrder);
-            document.getElementById('ft_koli_ordered').textContent = nf.format(koliOrder);
+            document.getElementById('ft_cnt_ordered').textContent = nf.format(cntOrder);
             document.getElementById('ft_qty_fulfilled').textContent = nf.format(qtyFulfill);
             document.getElementById('ft_qty_open').textContent = nf.format(qtyOpen);
         }

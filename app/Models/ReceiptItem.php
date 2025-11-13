@@ -13,7 +13,8 @@ class ReceiptItem extends Model
         'warehouse_receipt_id',
         'item_id',
         'qty_received',
-        'koli_received',
+        'cnt_received',
+        'pcs_cnt',
     ];
 
     public function receipt()

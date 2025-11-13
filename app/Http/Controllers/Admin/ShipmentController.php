@@ -51,7 +51,7 @@ class ShipmentController extends Controller
         $dataQuery = (clone $base)
             ->selectRaw('sh.id, sh.code, sh.container_no, sh.pl_no, sh.etd, sh.eta, sh.status')
             ->selectRaw('COUNT(DISTINCT si.id) as items_count')
-            ->selectRaw('COALESCE(SUM(si.koli_expected),0) as koli_expected_total')
+            ->selectRaw('COALESCE(SUM(si.cnt_expected),0) as cnt_expected_total')
             ->when($search, function($q) use ($search){
                 $like = '%'.$search.'%';
                 $q->where(function($w) use ($like){
@@ -76,7 +76,7 @@ class ShipmentController extends Controller
             'eta' => 'sh.eta',
             'status' => 'sh.status',
             'items_count' => 'items_count',
-            'koli_expected_total' => 'koli_expected_total',
+            'cnt_expected_total' => 'cnt_expected_total',
         ];
         foreach ($orderReq as $ord) {
             $idx = (int) ($ord['column'] ?? 0);
@@ -99,7 +99,7 @@ class ShipmentController extends Controller
                 'eta' => $r->eta ? \Carbon\Carbon::parse($r->eta)->format('Y-m-d') : null,
                 'status' => $r->status,
                 'items_count' => (int) $r->items_count,
-                'koli_expected_total' => $r->koli_expected_total,
+                'cnt_expected_total' => $r->cnt_expected_total,
             ];
         });
 
@@ -129,7 +129,8 @@ class ShipmentController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.item_id' => ['required', 'exists:items,id'],
             'items.*.qty_expected' => ['required', 'integer', 'min:1'],
-            'items.*.koli_expected' => ['nullable', 'numeric', 'min:0'],
+            'items.*.cnt_expected' => ['nullable', 'numeric', 'min:0'],
+            'items.*.pcs_cnt' => ['nullable', 'string', 'max:100'],
         ]);
 
         DB::transaction(function () use ($validated, $request) {
@@ -148,11 +149,20 @@ class ShipmentController extends Controller
                 'status' => $validated['status'] ?? 'planned',
             ]);
             foreach ($validated['items'] as $row) {
+                $cntExpected = $row['cnt_expected'] ?? null;
+                if ($cntExpected === '' || $cntExpected === null) {
+                    $cntExpected = null;
+                }
+                $pcsCnt = array_key_exists('pcs_cnt', $row) ? trim((string) $row['pcs_cnt']) : null;
+                if ($pcsCnt === '') {
+                    $pcsCnt = null;
+                }
                 ShipmentItem::create([
                     'shipment_id' => $shipment->id,
                     'item_id' => $row['item_id'],
                     'qty_expected' => $row['qty_expected'],
-                    'koli_expected' => $row['koli_expected'] ?? null,
+                    'cnt_expected' => $cntExpected,
+                    'pcs_cnt' => $pcsCnt,
                 ]);
             }
         });
@@ -179,7 +189,8 @@ class ShipmentController extends Controller
             'items.*.id' => ['nullable', 'integer'],
             'items.*.item_id' => ['required', 'exists:items,id'],
             'items.*.qty_expected' => ['required', 'integer', 'min:1'],
-            'items.*.koli_expected' => ['nullable', 'numeric', 'min:0'],
+            'items.*.cnt_expected' => ['nullable', 'numeric', 'min:0'],
+            'items.*.pcs_cnt' => ['nullable', 'string', 'max:100'],
         ]);
 
         DB::transaction(function () use ($validated, $shipment) {
@@ -193,12 +204,21 @@ class ShipmentController extends Controller
 
             $keep = [];
             foreach ($validated['items'] as $row) {
+                $cntExpected = $row['cnt_expected'] ?? null;
+                if ($cntExpected === '' || $cntExpected === null) {
+                    $cntExpected = null;
+                }
+                $pcsCnt = array_key_exists('pcs_cnt', $row) ? trim((string) $row['pcs_cnt']) : null;
+                if ($pcsCnt === '') {
+                    $pcsCnt = null;
+                }
                 if (!empty($row['id'])) {
                     $si = ShipmentItem::where('shipment_id', $shipment->id)->where('id', $row['id'])->firstOrFail();
                     $si->update([
                         'item_id' => $row['item_id'],
                         'qty_expected' => $row['qty_expected'],
-                        'koli_expected' => $row['koli_expected'] ?? null,
+                        'cnt_expected' => $cntExpected,
+                        'pcs_cnt' => $pcsCnt,
                     ]);
                     $keep[] = $si->id;
                 } else {
@@ -206,7 +226,8 @@ class ShipmentController extends Controller
                         'shipment_id' => $shipment->id,
                         'item_id' => $row['item_id'],
                         'qty_expected' => $row['qty_expected'],
-                        'koli_expected' => $row['koli_expected'] ?? null,
+                        'cnt_expected' => $cntExpected,
+                        'pcs_cnt' => $pcsCnt,
                     ]);
                     $keep[] = $si->id;
                 }

@@ -59,7 +59,7 @@ class WarehouseReceiptController extends Controller
             ->selectRaw("COALESCE(sh.container_no, CONCAT('#', sh.id)) as shipment")
             ->selectRaw('wh.name as warehouse')
             ->selectRaw('COALESCE(SUM(ri.qty_received),0) as qty_total')
-            ->selectRaw('COALESCE(SUM(ri.koli_received),0) as koli_total')
+            ->selectRaw('COALESCE(SUM(ri.cnt_received),0) as cnt_total')
             ->when($search, function($q) use ($search){
                 $like = '%'.$search.'%';
                 $q->where(function($w) use ($like){
@@ -83,7 +83,7 @@ class WarehouseReceiptController extends Controller
             'received_at' => 'wr.received_at',
             'status' => 'wr.status',
             'qty_total' => 'qty_total',
-            'koli_total' => 'koli_total',
+            'cnt_total' => 'cnt_total',
         ];
         foreach ($orderReq as $ord) {
             $idx = (int) ($ord['column'] ?? 0);
@@ -105,7 +105,7 @@ class WarehouseReceiptController extends Controller
                 'received_at' => $r->received_at ? \Carbon\Carbon::parse($r->received_at)->format('Y-m-d H:i') : null,
                 'status' => $r->status,
                 'qty_total' => (int) $r->qty_total,
-                'koli_total' => $r->koli_total,
+                'cnt_total' => $r->cnt_total,
             ];
         });
 
@@ -135,7 +135,8 @@ class WarehouseReceiptController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.item_id' => ['required', 'exists:items,id'],
             'items.*.qty_received' => ['required', 'integer', 'min:0'],
-            'items.*.koli_received' => ['nullable', 'numeric', 'min:0'],
+            'items.*.cnt_received' => ['nullable', 'numeric', 'min:0'],
+            'items.*.pcs_cnt' => ['nullable', 'string', 'max:100'],
         ]);
 
         DB::transaction(function () use ($validated, $request) {
@@ -155,11 +156,20 @@ class WarehouseReceiptController extends Controller
             foreach ($validated['items'] as $row) {
                 $qty = (float) $row['qty_received'];
                 if ($qty <= 0) continue;
+                $cntReceived = $row['cnt_received'] ?? null;
+                if ($cntReceived === '' || $cntReceived === null) {
+                    $cntReceived = null;
+                }
+                $pcsCnt = array_key_exists('pcs_cnt', $row) ? trim((string) $row['pcs_cnt']) : null;
+                if ($pcsCnt === '') {
+                    $pcsCnt = null;
+                }
                 $ri = ReceiptItem::create([
                     'warehouse_receipt_id' => $receipt->id,
                     'item_id' => $row['item_id'],
                     'qty_received' => $qty,
-                    'koli_received' => $row['koli_received'] ?? null,
+                    'cnt_received' => $cntReceived,
+                    'pcs_cnt' => $pcsCnt,
                 ]);
                 FifoAllocator::allocateReceiptItem($ri);
             }
@@ -186,7 +196,8 @@ class WarehouseReceiptController extends Controller
             'items.*.id' => ['nullable','integer'],
             'items.*.item_id' => ['required', 'exists:items,id'],
             'items.*.qty_received' => ['required', 'integer', 'min:0'],
-            'items.*.koli_received' => ['nullable', 'numeric', 'min:0'],
+            'items.*.cnt_received' => ['nullable', 'numeric', 'min:0'],
+            'items.*.pcs_cnt' => ['nullable', 'string', 'max:100'],
         ]);
 
         DB::transaction(function () use ($validated, $receipt) {
@@ -199,6 +210,14 @@ class WarehouseReceiptController extends Controller
             $keep = [];
             foreach ($validated['items'] as $row) {
                 $qty = (float) ($row['qty_received'] ?? 0);
+                $cntReceived = $row['cnt_received'] ?? null;
+                if ($cntReceived === '' || $cntReceived === null) {
+                    $cntReceived = null;
+                }
+                $pcsCnt = array_key_exists('pcs_cnt', $row) ? trim((string) $row['pcs_cnt']) : null;
+                if ($pcsCnt === '') {
+                    $pcsCnt = null;
+                }
                 $previousLineIds = [];
                 if (!empty($row['id'])) {
                     $ri = ReceiptItem::where('warehouse_receipt_id', $receipt->id)->where('id', $row['id'])->firstOrFail();
@@ -206,14 +225,16 @@ class WarehouseReceiptController extends Controller
                     $ri->update([
                         'item_id' => $row['item_id'],
                         'qty_received' => $qty,
-                        'koli_received' => $row['koli_received'] ?? null,
+                        'cnt_received' => $cntReceived,
+                        'pcs_cnt' => $pcsCnt,
                     ]);
                 } else {
                     $ri = ReceiptItem::create([
                         'warehouse_receipt_id' => $receipt->id,
                         'item_id' => $row['item_id'],
                         'qty_received' => $qty,
-                        'koli_received' => $row['koli_received'] ?? null,
+                        'cnt_received' => $cntReceived,
+                        'pcs_cnt' => $pcsCnt,
                     ]);
                 }
                 // Reset allocations for this item then re-allocate

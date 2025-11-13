@@ -55,7 +55,7 @@
                             <ul class="mt-2 mb-0">
                                 <li><code>sku</code> — wajib, unik</li>
                                 <li><code>name</code> — wajib</li>
-                                <li><code>cnt</code> — wajib (contoh: koli, pcs, dsb.)</li>
+                                <li><code>cnt</code> — wajib (contoh: carton, pcs, dsb.)</li>
                                 <li><code>category</code> — wajib, isi nama kategori sesuai Masterdata Kategori</li>
                                 <li><code>uom</code> — opsional; jika kosong akan menggunakan UOM default (ID 1). Jika diisi dan belum ada, UOM akan dibuat otomatis.</li>
                                 <li><code>description</code> — opsional</li>
@@ -64,7 +64,7 @@
                             <ul class="mt-2 mb-0">
                                 <li>category: <code>category</code> | <code>kategori</code> | <code>category_name</code></li>
                                 <li>uom: <code>uom</code> | <code>uom_name</code></li>
-                                <li>cnt: <code>cnt</code> | <code>koli</code></li>
+                                <li>cnt: <code>cnt</code></li>
                                 <li>name: <code>name</code> | <code>nama</code></li>
                                 <li>description: <code>description</code> | <code>deskripsi</code> | <code>keterangan</code></li>
                             </ul>
@@ -490,7 +490,7 @@
                     <li><code>sku</code> — wajib, unik</li>
                     <li><code>name</code> / <code>nama</code> — wajib</li>
                     <li><code>category</code> / <code>kategori</code> — wajib (nama kategori harus sudah ada)</li>
-                    <li><code>cnt</code> / <code>koli</code> — wajib</li>
+                    <li><code>cnt</code> — wajib</li>
                     <li><code>uom</code> — opsional; jika kosong akan menggunakan UOM default (ID 1). Jika diisi dan belum ada, UOM akan dibuat otomatis.</li>
                     <li><code>description</code> — opsional</li>
                 </ul>
@@ -498,7 +498,7 @@
                 <ul class="mb-0">
                     <li>category: <code>category</code> | <code>kategori</code> | <code>category_name</code></li>
                     <li>uom: <code>uom</code> | <code>uom_name</code></li>
-                    <li>cnt: <code>cnt</code> | <code>koli</code></li>
+                    <li>cnt: <code>cnt</code></li>
                     <li>name: <code>name</code> | <code>nama</code></li>
                     <li>description: <code>description</code> | <code>deskripsi</code> | <code>keterangan</code></li>
                 </ul>

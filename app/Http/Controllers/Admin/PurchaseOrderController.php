@@ -72,7 +72,7 @@ class PurchaseOrderController extends Controller
             ->selectRaw('po.id, po.code, po.ref_no, po.order_date')
             ->selectRaw('COUNT(DISTINCT pl.id) as lines_count')
             ->selectRaw('COALESCE(SUM(pl.qty_ordered),0) as qty_ordered')
-            ->selectRaw('COALESCE(SUM(pl.koli_ordered),0) as koli_ordered')
+            ->selectRaw('COALESCE(SUM(pl.cnt_ordered),0) as cnt_ordered')
             ->selectRaw('COALESCE(SUM(pl.qty_fulfilled),0) as qty_fulfilled')
             ->selectRaw('COALESCE(SUM(pl.qty_remaining),0) as qty_open')
             ->selectRaw("CASE WHEN COALESCE(SUM(pl.qty_remaining),0) <= 0 THEN 'fulfilled' WHEN COALESCE(SUM(pl.qty_fulfilled),0) > 0 THEN 'partial' ELSE 'open' END as status")
@@ -104,7 +104,7 @@ class PurchaseOrderController extends Controller
             'order_date' => 'po.order_date',
             'lines_count' => 'lines_count',
             'qty_ordered' => 'qty_ordered',
-            'koli_ordered' => 'koli_ordered',
+            'cnt_ordered' => 'cnt_ordered',
             'qty_fulfilled' => 'qty_fulfilled',
             'qty_open' => 'qty_open',
             'status' => 'status',
@@ -128,7 +128,7 @@ class PurchaseOrderController extends Controller
                 'order_date' => $r->order_date ? \Carbon\Carbon::parse($r->order_date)->format('Y-m-d') : null,
                 'lines_count' => (int) $r->lines_count,
                 'qty_ordered' => (int) $r->qty_ordered,
-                'koli_ordered' => $r->koli_ordered, // may be null
+                'cnt_ordered' => $r->cnt_ordered, // may be null
                 'qty_fulfilled' => (int) $r->qty_fulfilled,
                 'qty_open' => (int) $r->qty_open,
                 'status' => $r->status,
@@ -158,7 +158,8 @@ class PurchaseOrderController extends Controller
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.item_id' => ['required', 'exists:items,id'],
             'lines.*.qty_ordered' => ['required', 'integer', 'min:1'],
-            'lines.*.koli_ordered' => ['nullable', 'numeric', 'min:0'],
+            'lines.*.cnt_ordered' => ['nullable', 'numeric', 'min:0'],
+            'lines.*.pcs_cnt' => ['nullable', 'string', 'max:100'],
             'lines.*.notes' => ['nullable', 'string'],
         ]);
 
@@ -177,11 +178,20 @@ class PurchaseOrderController extends Controller
                 'status' => 'open',
             ]);
             foreach ($validated['lines'] as $line) {
+                $cntOrdered = $line['cnt_ordered'] ?? null;
+                if ($cntOrdered === '' || $cntOrdered === null) {
+                    $cntOrdered = null;
+                }
+                $pcsCnt = array_key_exists('pcs_cnt', $line) ? trim((string) $line['pcs_cnt']) : null;
+                if ($pcsCnt === '') {
+                    $pcsCnt = null;
+                }
                 PoLine::create([
                     'purchase_order_id' => $po->id,
                     'item_id' => $line['item_id'],
                     'qty_ordered' => $line['qty_ordered'],
-                    'koli_ordered' => $line['koli_ordered'] ?? null,
+                    'cnt_ordered' => $cntOrdered,
+                    'pcs_cnt' => $pcsCnt,
                     'notes' => $line['notes'] ?? null,
                 ]);
             }
@@ -209,7 +219,8 @@ class PurchaseOrderController extends Controller
             'lines.*.id' => ['nullable', 'integer'],
             'lines.*.item_id' => ['required', 'exists:items,id'],
             'lines.*.qty_ordered' => ['required', 'integer', 'min:1'],
-            'lines.*.koli_ordered' => ['nullable', 'numeric', 'min:0'],
+            'lines.*.cnt_ordered' => ['nullable', 'numeric', 'min:0'],
+            'lines.*.pcs_cnt' => ['nullable', 'string', 'max:100'],
             'lines.*.notes' => ['nullable', 'string'],
         ]);
 
@@ -221,12 +232,21 @@ class PurchaseOrderController extends Controller
 
             $keepIds = [];
             foreach ($validated['lines'] as $line) {
+                $cntOrdered = $line['cnt_ordered'] ?? null;
+                if ($cntOrdered === '' || $cntOrdered === null) {
+                    $cntOrdered = null;
+                }
+                $pcsCnt = array_key_exists('pcs_cnt', $line) ? trim((string) $line['pcs_cnt']) : null;
+                if ($pcsCnt === '') {
+                    $pcsCnt = null;
+                }
                 if (!empty($line['id'])) {
                     $pl = PoLine::where('purchase_order_id', $purchase_order->id)->where('id', $line['id'])->firstOrFail();
                     $pl->update([
                         'item_id' => $line['item_id'],
                         'qty_ordered' => $line['qty_ordered'],
-                        'koli_ordered' => $line['koli_ordered'] ?? null,
+                        'cnt_ordered' => $cntOrdered,
+                        'pcs_cnt' => $pcsCnt,
                         'notes' => $line['notes'] ?? null,
                     ]);
                     $keepIds[] = $pl->id;
@@ -235,7 +255,8 @@ class PurchaseOrderController extends Controller
                         'purchase_order_id' => $purchase_order->id,
                         'item_id' => $line['item_id'],
                         'qty_ordered' => $line['qty_ordered'],
-                        'koli_ordered' => $line['koli_ordered'] ?? null,
+                        'cnt_ordered' => $cntOrdered,
+                        'pcs_cnt' => $pcsCnt,
                         'notes' => $line['notes'] ?? null,
                     ]);
                     $keepIds[] = $pl->id;

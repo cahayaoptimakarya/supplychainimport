@@ -47,7 +47,8 @@
                                 <tr>
                                     <th>Item</th>
                                     <th width="160">Qty</th>
-                                    <th width="140">Koli</th>
+                                    <th width="140">Cnt</th>
+                                    <th width="160">PCS / CNT</th>
                                     <th>Notes</th>
                                     <th width="60"></th>
                                 </tr>
@@ -80,7 +81,10 @@
             <input type="number" step="1" min="1" name="lines[__i__][qty_ordered]" class="form-control form-control-solid" required />
         </td>
         <td>
-            <input type="number" step="0.0001" min="0" name="lines[__i__][koli_ordered]" class="form-control form-control-solid" />
+            <input type="number" step="0.0001" min="0" name="lines[__i__][cnt_ordered]" class="form-control form-control-solid" />
+        </td>
+        <td>
+            <input type="text" name="lines[__i__][pcs_cnt]" class="form-control form-control-solid" placeholder="mis. 10 pcs / 1 cnt" />
         </td>
         <td>
             <input type="text" name="lines[__i__][notes]" class="form-control form-control-solid" />
@@ -122,9 +126,11 @@ document.addEventListener('DOMContentLoaded', function(){
             const qi = tr.querySelector('input[name$="[qty_ordered]"]');
             qi.value = (data.qty_ordered !== undefined && data.qty_ordered !== null && data.qty_ordered !== '')
                 ? String(parseInt(data.qty_ordered, 10)) : '';
+            const cntInput = tr.querySelector('input[name$="[cnt_ordered]"]');
+            if (cntInput) cntInput.value = data.cnt_ordered || '';
+            const pcsInput = tr.querySelector('input[name$="[pcs_cnt]"]');
+            if (pcsInput) pcsInput.value = data.pcs_cnt || '';
             tr.querySelector('input[name$="[notes]"]').value = data.notes || '';
-            const koliInput = tr.querySelector('input[name$="[koli_ordered]"]');
-            if (koliInput) koliInput.value = data.koli_ordered || '';
         }
         tr.querySelector('.btn-del-line').addEventListener('click', ()=> tr.remove());
     }
@@ -135,7 +141,8 @@ document.addEventListener('DOMContentLoaded', function(){
                 'id' => $l->id,
                 'item_id' => $l->item_id,
                 'qty_ordered' => (int) $l->qty_ordered,
-                'koli_ordered' => $l->koli_ordered,
+                'cnt_ordered' => $l->cnt_ordered,
+                'pcs_cnt' => $l->pcs_cnt,
                 'notes' => $l->notes,
             ];
         })->values();

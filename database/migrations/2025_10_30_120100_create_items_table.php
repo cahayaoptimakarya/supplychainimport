@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('sku')->unique();
-            $table->string('cnt')->comment("koli")->nullable();
+            $table->string('cnt')->comment('cnt descriptor')->nullable();
             $table->foreignId('uom_id')->constrained('uoms')->cascadeOnUpdate()->restrictOnDelete();
             $table->text('description')->nullable();
             $table->foreignId('category_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
@@ -25,4 +25,3 @@ return new class extends Migration
         Schema::dropIfExists('items');
     }
 };
-

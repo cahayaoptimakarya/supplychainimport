@@ -18,7 +18,8 @@ return new class extends Migration
             $table->decimal('fulfillment_percent', 9, 4)->default(0);
             $table->enum('status', ['open', 'partial', 'fulfilled'])->default('open');
             $table->timestamp('fulfillment_refreshed_at')->nullable();
-            $table->decimal('koli_ordered', 18, 4)->nullable();
+            $table->decimal('cnt_ordered', 18, 4)->nullable();
+            $table->string('pcs_cnt')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });

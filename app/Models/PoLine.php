@@ -15,7 +15,8 @@ class PoLine extends Model
         'purchase_order_id',
         'item_id',
         'qty_ordered',
-        'koli_ordered',
+        'cnt_ordered',
+        'pcs_cnt',
         'notes',
     ];
 
@@ -29,7 +30,7 @@ class PoLine extends Model
 
     protected $casts = [
         'qty_ordered' => 'float',
-        'koli_ordered' => 'float',
+        'cnt_ordered' => 'float',
         'qty_fulfilled' => 'float',
         'qty_remaining' => 'float',
         'fulfillment_percent' => 'float',

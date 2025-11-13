@@ -61,7 +61,7 @@
                             <th>Received At</th>
                             <th>Status</th>
                             <th class="text-end">Qty Total</th>
-                            <th class="text-end">Koli Received</th>
+                            <th class="text-end">Cnt Received</th>
                             <th class="text-end">Aksi</th>
                         </tr>
                         </thead>
@@ -70,7 +70,7 @@
                         <tr class="fw-bold">
                             <th colspan="6" class="text-end">Totals:</th>
                             <th id="ft_qty_total" class="text-end cell-number">0</th>
-                            <th id="ft_koli_total" class="text-end cell-number">0</th>
+                            <th id="ft_cnt_total" class="text-end cell-number">0</th>
                         </tr>
                         </tfoot>
                     </table>
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return `<span class="badge badge-light-${cls}">${(val||'-').toUpperCase()}</span>`;
             } },
             { data: 'qty_total', className: 'cell-number', render: v => formatNumeric(v) },
-            { data: 'koli_total', defaultContent: 0, className: 'cell-number', render: v => formatNumeric(v) },
+            { data: 'cnt_total', defaultContent: 0, className: 'cell-number', render: v => formatNumeric(v) },
             {
                 data: 'id', className: 'text-end', orderable: false, searchable: false,
                 render: function(id){
@@ -155,9 +155,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         ],
         footerCallback: function(row, data){
-            let qty=0, koli=0; data.forEach(r=>{ qty += parseFloat(r.qty_total||0); koli += parseFloat(r.koli_total||0); });
+            let qty=0, cnt=0; data.forEach(r=>{ qty += parseFloat(r.qty_total||0); cnt += parseFloat(r.cnt_total||0); });
             document.getElementById('ft_qty_total').textContent = nf.format(qty);
-            document.getElementById('ft_koli_total').textContent = nf.format(koli);
+            document.getElementById('ft_cnt_total').textContent = nf.format(cnt);
         }
     });
     const refreshMenus = () => { if (window.KTMenu) KTMenu.createInstances(); };

@@ -143,7 +143,7 @@ class ItemController extends Controller
 
             $name = $resolve($data, 'name', ['name','nama']);
             $sku  = $resolve($data, 'sku', ['sku','kode','kode_sku']);
-            $cnt  = $resolve($data, 'cnt', ['cnt','koli']);
+            $cnt  = $resolve($data, 'cnt', ['cnt']);
             $cat  = $resolve($data, 'category', ['category','kategori','category_name']);
             $uom  = $resolve($data, 'uom', ['uom','uom_name']);
             $desc = $resolve($data, 'description', ['description','deskripsi','keterangan']);

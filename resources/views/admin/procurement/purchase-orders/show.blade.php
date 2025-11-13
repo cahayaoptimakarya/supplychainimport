@@ -75,7 +75,8 @@
                                 <th>#</th>
                                 <th>Item</th>
                                 <th class="text-end">Qty Ordered</th>
-                                <th class="text-end">Koli Ordered</th>
+                                <th class="text-end">Cnt Ordered</th>
+                                <th>PCS / CNT</th>
                                 <th class="text-end">Qty Fulfilled</th>
                                 <th class="text-end">Qty Remaining</th>
                                 <th class="text-end">Fulfillment</th>
@@ -90,7 +91,8 @@
                                     <td>{{ $i+1 }}</td>
                                     <td>{{ optional($l->item)->sku }} - {{ optional($l->item)->name }}</td>
                                     <td class="text-end">{{ number_format($l->qty_ordered, 0) }}</td>
-                                    <td class="text-end">{{ $l->koli_ordered === null ? '-' : number_format($l->koli_ordered, 4) }}</td>
+                                    <td class="text-end">{{ $l->cnt_ordered === null ? '-' : number_format($l->cnt_ordered, 4) }}</td>
+                                    <td>{{ $l->pcs_cnt ?? '-' }}</td>
                                     <td class="text-end">{{ number_format($l->fulfilled_qty, 0) }}</td>
                                     <td class="text-end">{{ number_format($l->remaining_qty, 0) }}</td>
                                     <td class="text-end">
