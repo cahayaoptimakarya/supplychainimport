@@ -72,8 +72,8 @@
                                 <tr>
                                     <th>Item</th>
                                     <th width="160">Qty Received</th>
-                                    <th width="140">Cnt Received</th>
                                     <th width="160">PCS / CNT</th>
+                                    <th width="140">Cnt Received</th>
                                     <th width="60"></th>
                                 </tr>
                             </thead>
@@ -105,10 +105,10 @@
             <input type="number" step="1" min="0" name="items[__i__][qty_received]" class="form-control form-control-solid" required />
         </td>
         <td>
-            <input type="number" step="0.0001" min="0" name="items[__i__][cnt_received]" class="form-control form-control-solid" />
+            <input type="text" name="items[__i__][pcs_cnt]" class="form-control form-control-solid" placeholder="mis. 10 pcs / 1 cnt" />
         </td>
         <td>
-            <input type="text" name="items[__i__][pcs_cnt]" class="form-control form-control-solid" placeholder="mis. 10 pcs / 1 cnt" />
+            <input type="number" step="0.0001" min="0" name="items[__i__][cnt_received]" class="form-control form-control-solid" />
         </td>
         <td class="text-end">
             <button type="button" class="btn btn-light-danger btn-sm btn-del-item">Hapus</button>
@@ -146,10 +146,10 @@ document.addEventListener('DOMContentLoaded', function(){
             const qi = tr.querySelector('input[name$="[qty_received]"]');
             qi.value = (data.qty_received !== undefined && data.qty_received !== null && data.qty_received !== '')
                 ? String(parseInt(data.qty_received, 10)) : '';
-            const cntInput = tr.querySelector('input[name$="[cnt_received]"]');
-            if (cntInput) cntInput.value = data.cnt_received || '';
             const pcsInput = tr.querySelector('input[name$="[pcs_cnt]"]');
             if (pcsInput) pcsInput.value = data.pcs_cnt || '';
+            const cntInput = tr.querySelector('input[name$="[cnt_received]"]');
+            if (cntInput) cntInput.value = data.cnt_received || '';
         }
         tr.querySelector('.btn-del-item').addEventListener('click', ()=> tr.remove());
     }

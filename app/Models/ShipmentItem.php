@@ -15,6 +15,7 @@ class ShipmentItem extends Model
         'qty_expected',
         'cnt_expected',
         'pcs_cnt',
+        'description',
     ];
 
     public function shipment()

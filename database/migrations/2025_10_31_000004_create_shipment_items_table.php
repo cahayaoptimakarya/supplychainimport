@@ -15,6 +15,7 @@ return new class extends Migration
             $table->decimal('qty_expected', 18, 4);
             $table->decimal('cnt_expected', 18, 4)->nullable();
             $table->string('pcs_cnt')->nullable();
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

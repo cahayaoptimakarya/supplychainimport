@@ -131,6 +131,7 @@ class ShipmentController extends Controller
             'items.*.qty_expected' => ['required', 'integer', 'min:1'],
             'items.*.cnt_expected' => ['nullable', 'numeric', 'min:0'],
             'items.*.pcs_cnt' => ['nullable', 'string', 'max:100'],
+            'items.*.description' => ['nullable', 'string', 'max:500'],
         ]);
 
         DB::transaction(function () use ($validated, $request) {
@@ -163,6 +164,7 @@ class ShipmentController extends Controller
                     'qty_expected' => $row['qty_expected'],
                     'cnt_expected' => $cntExpected,
                     'pcs_cnt' => $pcsCnt,
+                    'description' => $row['description'] ?? null,
                 ]);
             }
         });
@@ -191,6 +193,7 @@ class ShipmentController extends Controller
             'items.*.qty_expected' => ['required', 'integer', 'min:1'],
             'items.*.cnt_expected' => ['nullable', 'numeric', 'min:0'],
             'items.*.pcs_cnt' => ['nullable', 'string', 'max:100'],
+            'items.*.description' => ['nullable', 'string', 'max:500'],
         ]);
 
         DB::transaction(function () use ($validated, $shipment) {
@@ -219,6 +222,7 @@ class ShipmentController extends Controller
                         'qty_expected' => $row['qty_expected'],
                         'cnt_expected' => $cntExpected,
                         'pcs_cnt' => $pcsCnt,
+                        'description' => $row['description'] ?? null,
                     ]);
                     $keep[] = $si->id;
                 } else {
@@ -228,6 +232,7 @@ class ShipmentController extends Controller
                         'qty_expected' => $row['qty_expected'],
                         'cnt_expected' => $cntExpected,
                         'pcs_cnt' => $pcsCnt,
+                        'description' => $row['description'] ?? null,
                     ]);
                     $keep[] = $si->id;
                 }
