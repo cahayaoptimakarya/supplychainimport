@@ -87,7 +87,14 @@
                         const $el = jQuery(this);
                         if ($el.data('select2')) return;
                         const dropdownParent = $el.closest('.modal');
-                        const placeholder = $el.attr('placeholder') || $el.data('placeholder') || $el.attr('data-placeholder') || '';
+                        const placeholder = $el.attr('placeholder')
+                            || $el.data('placeholder')
+                            || $el.attr('data-placeholder')
+                            || $el.find('option[value=""]').text()
+                            || 'Silakan pilih';
+                        if (!$el.find('option[value=""]').length) {
+                            $el.prepend('<option value="" disabled selected hidden></option>');
+                        }
                         $el.select2({
                             width: $el.data('select2-width') || '100%',
                             placeholder,
