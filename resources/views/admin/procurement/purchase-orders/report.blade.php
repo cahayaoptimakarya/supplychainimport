@@ -48,9 +48,8 @@
                     <table class="table table-row-bordered table-row-gray-100 table-hover align-middle gy-3 fs-6" id="po_report_table">
                         <thead>
                             <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
-                                <th>Code</th>
-                                <th>Ref</th>
-                                <th>Tgl PO</th>
+                                <th>SKU</th>
+                                <th>Item</th>
                                 <th class="text-end">Qty Ordered</th>
                                 <th class="text-end">Qty Fulfilled</th>
                                 <th class="text-end">Belum Dikirim</th>
@@ -63,7 +62,7 @@
                         <tbody></tbody>
                         <tfoot>
                             <tr class="fw-bold">
-                                <th colspan="3" class="text-end">Totals:</th>
+                                <th colspan="2" class="text-end">Totals:</th>
                                 <th id="ft_qty_ordered" class="text-end cell-number">0</th>
                                 <th id="ft_qty_fulfilled" class="text-end cell-number">0</th>
                                 <th id="ft_belum" class="text-end cell-number">0</th>
@@ -75,6 +74,42 @@
                         </tfoot>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="itemDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="itemDetailTitle">Detail Item</h5>
+                <button type="button" class="btn btn-sm btn-icon" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="ki-outline ki-cross fs-2"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle" id="itemDetailTable">
+                        <thead>
+                            <tr class="text-uppercase text-gray-500 fw-bold fs-8">
+                                <th>PO Code</th>
+                                <th>Tgl PO</th>
+                                <th class="text-end">Qty Ordered</th>
+                                <th class="text-end">Qty Fulfilled</th>
+                                <th class="text-end">Qty Remaining</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6" class="text-center py-6">...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <div class="text-muted small" id="itemDetailMeta"></div>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -100,14 +135,20 @@ document.addEventListener('DOMContentLoaded', function () {
     flatpickr('.js-fp-date', { dateFormat: 'Y-m-d' });
 
     const dataUrl = '{{ route('admin.procurement.purchase-orders.report-data') }}';
-    const showTpl = '{{ route('admin.procurement.purchase-orders.show', ':id') }}';
     const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 });
+    const detailUrlTpl = '{{ route('admin.procurement.purchase-orders.report-item-detail', ':item') }}';
+    const detailModalEl = document.getElementById('itemDetailModal');
+    const detailModal = detailModalEl ? new bootstrap.Modal(detailModalEl) : null;
+    const detailBody = detailModalEl ? detailModalEl.querySelector('#itemDetailTable tbody') : null;
+    const detailMeta = detailModalEl ? document.getElementById('itemDetailMeta') : null;
+    const detailTitle = detailModalEl ? document.getElementById('itemDetailTitle') : null;
+
     const formatNumeric = (value) => `<span class="cell-number d-block text-end fw-semibold">${nf.format(value ?? 0)}</span>`;
     const table = $('#po_report_table').DataTable({
         processing: true,
         serverSide: true,
         searching: true,
-        order: [[2, 'desc']],
+        order: [[0, 'asc']],
         ajax: {
             url: dataUrl,
             data: function (d) {
@@ -122,13 +163,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
         columns: [
-            { data: 'code', render: function (val, type, row) {
-                const href = showTpl.replace(':id', row.id);
-                const text = val || '-';
-                return `<a href="${href}" class="text-primary fw-semibold">${text}</a>`;
+            { data: 'sku', render: function(val){
+                return `<span class="fw-bold">${val || '-'}</span>`;
             }},
-            { data: 'ref_no', defaultContent: '-' },
-            { data: 'order_date', defaultContent: '-' },
+            { data: 'item_name', render: function(val, type, row){
+                const name = val || '-';
+                if (!row.item_id) {
+                    return name;
+                }
+                return `<button type="button" class="btn btn-link p-0 js-item-detail" data-item="${row.item_id}" data-sku="${row.sku || ''}" data-name="${name}">${name}</button>`;
+            }},
             { data: 'qty_ordered', className: 'cell-number', render: v => formatNumeric(v) },
             { data: 'qty_fulfilled', className: 'cell-number', render: v => formatNumeric(v) },
             { data: 'belum_dikirim', className: 'cell-number', render: v => formatNumeric(v) },
@@ -193,6 +237,46 @@ document.addEventListener('DOMContentLoaded', function () {
             tmr = setTimeout(() => run(q), 200);
         });
     })();
+
+    $('#po_report_table').on('click', '.js-item-detail', function () {
+        if (!detailModal || !detailBody) return;
+        const itemId = this.dataset.item;
+        const sku = this.dataset.sku || '-';
+        const name = this.dataset.name || '-';
+        detailTitle.textContent = `${sku} — ${name}`;
+        detailMeta.textContent = 'Memuat data...';
+        detailBody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-muted">Memuat data...</td></tr>';
+        detailModal.show();
+
+        fetch(detailUrlTpl.replace(':item', itemId))
+            .then(response => {
+                if (!response.ok) throw new Error('Gagal memuat data');
+                return response.json();
+            })
+            .then(payload => {
+                const lines = payload.lines || [];
+                if (!lines.length) {
+                    detailBody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-muted">Tidak ada PO dengan sisa qty.</td></tr>';
+                    detailMeta.textContent = 'Semua PO untuk item ini sudah terpenuhi.';
+                    return;
+                }
+                detailBody.innerHTML = lines.map(line => {
+                    return `<tr>
+                        <td>${line.po_code || '-'}</td>
+                        <td>${line.order_date || '-'}</td>
+                        <td class="text-end">${nf.format(line.qty_ordered || 0)}</td>
+                        <td class="text-end">${nf.format(line.qty_fulfilled || 0)}</td>
+                        <td class="text-end fw-bold">${nf.format(line.qty_remaining || 0)}</td>
+                        <td><span class="badge badge-light-${line.status === 'fulfilled' ? 'success' : (line.status === 'partial' ? 'info' : 'warning')}">${(line.status || '').toUpperCase()}</span></td>
+                    </tr>`;
+                }).join('');
+                detailMeta.textContent = `${lines.length} PO masih memiliki sisa qty untuk item ini.`;
+            })
+            .catch(() => {
+                detailBody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-danger">Gagal memuat detail.</td></tr>';
+                detailMeta.textContent = 'Terjadi kesalahan saat memuat data.';
+            });
+    });
 });
 </script>
 @endpush

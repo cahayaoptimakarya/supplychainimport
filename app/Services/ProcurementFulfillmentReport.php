@@ -47,23 +47,34 @@ class ProcurementFulfillmentReport
         $itemIds = $lines->pluck('item_id')->unique()->filter()->values()->all();
         $shipmentsByItem = $this->buildShipmentBuckets($itemIds);
 
-        $rows = collect();
+        $rows = [];
+        $itemOrder = [];
 
         foreach ($poSorted as $po) {
-            $row = [
-                'id' => $po->id,
-                'code' => $po->code,
-                'ref_no' => $po->ref_no,
-                'order_date' => optional($po->order_date)->format('Y-m-d'),
-                'qty_ordered' => 0.0,
-                'qty_fulfilled' => 0.0,
-                self::STAGE_BELUM_DIKIRIM => 0.0,
-                self::STAGE_MASIH_DIJALAN => 0.0,
-                self::STAGE_DI_PELABUHAN => 0.0,
-                self::STAGE_DITERIMA_GUDANG => 0.0,
-            ];
-
             foreach ($po->lines as $line) {
+                $itemId = $line->item_id;
+                if (!$itemId) {
+                    continue;
+                }
+
+                if (!isset($rows[$itemId])) {
+                    $item = $line->item;
+                    $rows[$itemId] = [
+                        'item_id' => $itemId,
+                        'sku' => optional($item)->sku ?? ('SKU-'.$itemId),
+                        'item_name' => optional($item)->name ?? '-',
+                        'qty_ordered' => 0.0,
+                        'qty_fulfilled' => 0.0,
+                        self::STAGE_BELUM_DIKIRIM => 0.0,
+                        self::STAGE_MASIH_DIJALAN => 0.0,
+                        self::STAGE_DI_PELABUHAN => 0.0,
+                        self::STAGE_DITERIMA_GUDANG => 0.0,
+                    ];
+                    $itemOrder[] = $itemId;
+                }
+
+                $row =& $rows[$itemId];
+
                 $ordered = (float) $line->qty_ordered;
                 $fulfilled = (float) $line->qty_fulfilled;
 
@@ -72,40 +83,45 @@ class ProcurementFulfillmentReport
                 $row[self::STAGE_DITERIMA_GUDANG] += $fulfilled;
 
                 $remaining = max(0.0, $ordered - $fulfilled);
-                if ($remaining <= 0) {
-                    continue;
-                }
-
-                $itemId = $line->item_id;
-                if (isset($shipmentsByItem[$itemId])) {
-                    foreach ($shipmentsByItem[$itemId] as &$shipment) {
-                        if ($remaining <= 0) {
-                            break;
-                        }
-
-                        $available = $shipment['available'];
-                        if ($available <= 0) {
-                            continue;
-                        }
-
-                        $take = min($available, $remaining);
-                        $row[$shipment['stage']] += $take;
-                        $shipment['available'] -= $take;
-                        $remaining -= $take;
-                    }
-                    unset($shipment);
-                }
-
                 if ($remaining > 0) {
-                    $row[self::STAGE_BELUM_DIKIRIM] += $remaining;
-                }
-            }
+                    if (isset($shipmentsByItem[$itemId])) {
+                        foreach ($shipmentsByItem[$itemId] as &$shipment) {
+                            if ($remaining <= 0) {
+                                break;
+                            }
 
-            $row['status'] = $this->deriveStatus($row['qty_ordered'], $row['qty_fulfilled']);
-            $rows->push($this->castRow($row));
+                            $available = $shipment['available'];
+                            if ($available <= 0) {
+                                continue;
+                            }
+
+                            $take = min($available, $remaining);
+                            $row[$shipment['stage']] += $take;
+                            $shipment['available'] -= $take;
+                            $remaining -= $take;
+                        }
+                        unset($shipment);
+                    }
+
+                    if ($remaining > 0) {
+                        $row[self::STAGE_BELUM_DIKIRIM] += $remaining;
+                    }
+                }
+
+                $row['status'] = $this->deriveStatus($row['qty_ordered'], $row['qty_fulfilled']);
+                unset($row);
+            }
         }
 
-        return $rows;
+        $orderedRows = collect();
+        foreach ($itemOrder as $itemId) {
+            if (!isset($rows[$itemId])) {
+                continue;
+            }
+            $orderedRows->push($this->castRow($rows[$itemId]));
+        }
+
+        return $orderedRows;
     }
 
     /**
