@@ -15,6 +15,7 @@ class ReceiptItem extends Model
         'qty_received',
         'cnt_received',
         'pcs_cnt',
+        'description',
     ];
 
     public function receipt()

@@ -64,6 +64,7 @@
                                     <th width="160">Qty Received</th>
                                     <th width="160">PCS / CNT</th>
                                     <th width="140">Cnt Received</th>
+                                    <th width="200">Description</th>
                                     <th width="60"></th>
                                 </tr>
                             </thead>
@@ -100,6 +101,9 @@
         </td>
         <td>
             <input type="number" step="0.0001" min="0" name="items[__i__][cnt_received]" class="form-control form-control-solid" />
+        </td>
+        <td>
+            <input type="text" name="items[__i__][description]" class="form-control form-control-solid" placeholder="Deskripsi item (opsional)" />
         </td>
         <td class="text-end">
             <button type="button" class="btn btn-light-danger btn-sm btn-del-item">Hapus</button>
@@ -142,6 +146,8 @@ document.addEventListener('DOMContentLoaded', function(){
             if (pcsInput) pcsInput.value = data.pcs_cnt || '';
             const cntInput = tr.querySelector('input[name$="[cnt_received]"]');
             if (cntInput) cntInput.value = data.cnt_received || '';
+            const descInput = tr.querySelector('input[name$="[description]"]');
+            if (descInput) descInput.value = data.description || '';
         }
         tr.querySelector('.btn-del-item').addEventListener('click', ()=> tr.remove());
     }
@@ -154,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 'qty_received' => (int) $l->qty_received,
                 'pcs_cnt' => $l->pcs_cnt,
                 'cnt_received' => $l->cnt_received,
+                'description' => $l->description,
             ];
         })->values();
     @endphp
@@ -163,6 +170,26 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<style>
+    #items_table {
+        table-layout: fixed;
+        width: 100%;
+    }
+    #items_table th:first-child,
+    #items_table td:first-child {
+        width: 260px;
+        min-width: 260px;
+    }
+    #items_table th:nth-child(2),
+    #items_table td:nth-child(2),
+    #items_table th:nth-child(3),
+    #items_table td:nth-child(3),
+    #items_table th:nth-child(4),
+    #items_table td:nth-child(4) {
+        width: 150px;
+        min-width: 150px;
+    }
+</style>
 @endpush
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

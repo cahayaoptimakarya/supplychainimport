@@ -137,6 +137,7 @@ class WarehouseReceiptController extends Controller
             'items.*.qty_received' => ['required', 'integer', 'min:0'],
             'items.*.cnt_received' => ['nullable', 'numeric', 'min:0'],
             'items.*.pcs_cnt' => ['nullable', 'string', 'max:100'],
+            'items.*.description' => ['nullable', 'string', 'max:500'],
         ]);
 
         DB::transaction(function () use ($validated, $request) {
@@ -170,6 +171,7 @@ class WarehouseReceiptController extends Controller
                     'qty_received' => $qty,
                     'cnt_received' => $cntReceived,
                     'pcs_cnt' => $pcsCnt,
+                    'description' => $row['description'] ?? null,
                 ]);
                 FifoAllocator::allocateReceiptItem($ri);
             }
@@ -198,6 +200,7 @@ class WarehouseReceiptController extends Controller
             'items.*.qty_received' => ['required', 'integer', 'min:0'],
             'items.*.cnt_received' => ['nullable', 'numeric', 'min:0'],
             'items.*.pcs_cnt' => ['nullable', 'string', 'max:100'],
+            'items.*.description' => ['nullable', 'string', 'max:500'],
         ]);
 
         DB::transaction(function () use ($validated, $receipt) {
@@ -227,6 +230,7 @@ class WarehouseReceiptController extends Controller
                         'qty_received' => $qty,
                         'cnt_received' => $cntReceived,
                         'pcs_cnt' => $pcsCnt,
+                        'description' => $row['description'] ?? null,
                     ]);
                 } else {
                     $ri = ReceiptItem::create([
@@ -235,6 +239,7 @@ class WarehouseReceiptController extends Controller
                         'qty_received' => $qty,
                         'cnt_received' => $cntReceived,
                         'pcs_cnt' => $pcsCnt,
+                        'description' => $row['description'] ?? null,
                     ]);
                 }
                 // Reset allocations for this item then re-allocate

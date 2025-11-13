@@ -138,6 +138,34 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<style>
+    #lines_table {
+        table-layout: fixed;
+        width: 100%;
+    }
+    #lines_table th:first-child,
+    #lines_table td:first-child {
+        width: 260px;
+        min-width: 260px;
+    }
+    #lines_table th:nth-child(2),
+    #lines_table td:nth-child(2) {
+        width: 150px;
+        min-width: 150px;
+    }
+    #lines_table th:nth-child(3),
+    #lines_table td:nth-child(3),
+    #lines_table th:nth-child(4),
+    #lines_table td:nth-child(4) {
+        width: 150px;
+        min-width: 150px;
+    }
+    #lines_table th:nth-child(5),
+    #lines_table td:nth-child(5) {
+        width: 220px;
+        min-width: 220px;
+    }
+</style>
 @endpush
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
