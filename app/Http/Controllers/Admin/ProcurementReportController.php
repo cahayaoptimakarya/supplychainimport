@@ -74,8 +74,37 @@ class ProcurementReportController extends Controller
             ->selectRaw('COALESCE(SUM(si.cnt_expected), 0) as cnt_expected')
             ->selectRaw('COUNT(si.id) as items_count')
             ->first();
+        if (!$totals) {
+            $totals = (object) [
+                'shipments' => 0,
+                'qty_expected' => 0,
+                'cnt_expected' => 0,
+                'items_count' => 0,
+            ];
+        }
 
         $today = Carbon::today();
+
+        $etaLateBreakdown = (clone $shipmentLines)
+            ->select('sh.id', 'sh.code', 'sh.container_no', 'sh.eta', 'sh.status')
+            ->groupBy('sh.id', 'sh.code', 'sh.container_no', 'sh.eta', 'sh.status')
+            ->get()
+            ->map(function ($row) use ($today) {
+                $eta = $row->eta ? Carbon::parse($row->eta) : null;
+                $isLate = $eta
+                    ? ($eta->isBefore($today) && !in_array($row->status, self::SHIPMENT_COMPLETE_STATUSES, true))
+                    : false;
+                return [
+                    'id' => $row->id,
+                    'code' => $row->code,
+                    'container_no' => $row->container_no,
+                    'eta' => $eta ? $eta->toDateString() : null,
+                    'is_late' => $isLate,
+                ];
+            })
+            ->filter(fn ($row) => $row['is_late'])
+            ->values();
+
         $rows = (clone $shipmentLines)
             ->select('sh.id', 'sh.code', 'sh.container_no', 'sh.pl_no', 'sh.status', 'sh.etd', 'sh.eta', 'sh.created_at')
             ->selectRaw('COUNT(si.id) as lines')
@@ -117,6 +146,7 @@ class ProcurementReportController extends Controller
                 'status_breakdown' => $statusBreakdown,
             ],
             'rows' => $rows,
+            'late_rows' => $etaLateBreakdown,
         ]);
     }
 
@@ -170,6 +200,14 @@ class ProcurementReportController extends Controller
             ->selectRaw('COALESCE(SUM(ri.cnt_received), 0) as cnt_received')
             ->selectRaw('COUNT(ri.id) as line_count')
             ->first();
+        if (!$totals) {
+            $totals = (object) [
+                'receipts' => 0,
+                'qty_received' => 0,
+                'cnt_received' => 0,
+                'line_count' => 0,
+            ];
+        }
 
         $rows = (clone $lines)
             ->select(

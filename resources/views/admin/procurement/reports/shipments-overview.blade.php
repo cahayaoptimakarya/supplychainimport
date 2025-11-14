@@ -256,6 +256,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const payload = await response.json();
             updateSummary(payload.summary || {});
             renderTable(payload.rows || []);
+            renderLate(payload.late_rows || payload.rows || []);
         }catch(err){
             console.error(err);
             showAlert(err.message || 'Terjadi kesalahan server');
