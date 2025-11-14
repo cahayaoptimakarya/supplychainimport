@@ -8,6 +8,7 @@ use App\Models\PoLine;
 use App\Models\PurchaseOrder;
 use App\Services\ProcurementFulfillmentReport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PurchaseOrderController extends Controller

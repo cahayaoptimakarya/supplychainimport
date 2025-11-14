@@ -31,10 +31,6 @@
 @section('content')
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="container-fluid" id="kt_content_container">
-        @if(session('success'))
-            <div class="alert alert-success my-5">{{ session('success') }}</div>
-        @endif
-
         <div class="card">
             <div class="card-header border-0 pt-6">
                 <ul class="nav nav-tabs nav-line-tabs mb-0 fs-6">
@@ -163,7 +159,7 @@
                 dataSrc: 'data',
                 error: function(xhr){
                     console.error('Items AJAX error:', xhr.responseText);
-                    alert('Gagal memuat data item');
+                    AppSwal.error('Gagal memuat data item');
                 }
             },
             columns: [
@@ -204,7 +200,7 @@
                 dataSrc: 'data',
                 error: function(xhr){
                     console.error('Categories AJAX error:', xhr.responseText);
-                    alert('Gagal memuat data kategori');
+                    AppSwal.error('Gagal memuat data kategori');
                 }
             },
             columns: [
@@ -230,30 +226,36 @@
         refreshMenus();
 
         // Delete handlers
-        $('#items_table').on('click', '.btn-delete', function(e) {
+        $('#items_table').on('click', '.btn-delete', async function(e) {
             e.preventDefault();
             const url = this.getAttribute('data-url');
-            if (!confirm('Yakin ingin menghapus item ini?')) return;
+            const confirmed = await AppSwal.confirm('Yakin ingin menghapus item ini?', {
+                confirmButtonText: 'Hapus'
+            });
+            if (!confirmed) return;
             fetch(url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
                 body: new URLSearchParams({ _method: 'DELETE' })
             }).then(res => {
-                if (res.ok) table.ajax.reload(null, false); else alert('Gagal menghapus item');
-            }).catch(() => alert('Gagal menghapus item'));
+                if (res.ok) table.ajax.reload(null, false); else AppSwal.error('Gagal menghapus item');
+            }).catch(() => AppSwal.error('Gagal menghapus item'));
         });
 
-        $('#item_categories_table').on('click', '.btn-delete-cat', function(e) {
+        $('#item_categories_table').on('click', '.btn-delete-cat', async function(e) {
             e.preventDefault();
             const url = this.getAttribute('data-url');
-            if (!confirm('Yakin ingin menghapus kategori ini?')) return;
+            const confirmed = await AppSwal.confirm('Yakin ingin menghapus kategori ini?', {
+                confirmButtonText: 'Hapus'
+            });
+            if (!confirmed) return;
             fetch(url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
                 body: new URLSearchParams({ _method: 'DELETE' })
             }).then(res => {
-                if (res.ok) catTable.ajax.reload(null, false); else alert('Gagal menghapus kategori');
-            }).catch(() => alert('Gagal menghapus kategori'));
+                if (res.ok) catTable.ajax.reload(null, false); else AppSwal.error('Gagal menghapus kategori');
+            }).catch(() => AppSwal.error('Gagal menghapus kategori'));
         });
 
         // Global search (optional, if present)
@@ -368,9 +370,9 @@
                         errorEl.textContent = msg;
                         errorEl.classList.remove('d-none');
                     } else {
-                        alert('Gagal menyimpan kategori');
+                        AppSwal.error('Gagal menyimpan kategori');
                     }
-                }).catch(() => { submitBtn.disabled = false; alert('Gagal menyimpan kategori'); });
+                }).catch(() => { submitBtn.disabled = false; AppSwal.error('Gagal menyimpan kategori'); });
             });
         }
     });

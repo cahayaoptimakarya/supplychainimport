@@ -21,10 +21,6 @@
 @section('content')
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="container-fluid" id="kt_content_container">
-        @if(session('success'))
-            <div class="alert alert-success my-5">{{ session('success') }}</div>
-        @endif
-
         <div class="card">
             <div class="card-body py-6">
                 <div class="table-responsive">
@@ -106,13 +102,16 @@
         refreshMenus();
         dt.on('draw', refreshMenus);
 
-        $('#menus_table').on('click', '.btn-delete', function(e) {
+        $('#menus_table').on('click', '.btn-delete', async function(e) {
             e.preventDefault();
             const url = this.getAttribute('data-url');
-            if (!confirm('Yakin ingin menghapus Menu ini?')) return;
+            const confirmed = await AppSwal.confirm('Yakin ingin menghapus Menu ini?', {
+                confirmButtonText: 'Hapus'
+            });
+            if (!confirmed) return;
             fetch(url, { method:'POST', headers:{ 'X-CSRF-TOKEN': csrfToken }, body: new URLSearchParams({ _method:'DELETE' }) })
-                .then(res => { if (res.ok) dt.ajax.reload(null, false); else alert('Gagal menghapus menu'); })
-                .catch(()=> alert('Gagal menghapus menu'));
+                .then(res => { if (res.ok) dt.ajax.reload(null, false); else AppSwal.error('Gagal menghapus menu'); })
+                .catch(()=> AppSwal.error('Gagal menghapus menu'));
         });
     });
     </script>

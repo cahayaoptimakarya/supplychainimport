@@ -26,10 +26,6 @@
 @section('content')
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="container-fluid" id="kt_content_container">
-        @if(session('success'))
-            <div class="alert alert-success my-5">{{ session('success') }}</div>
-        @endif
-
         <div class="card">
             <div class="card-body py-6">
                 <div class="row g-3 mb-4 align-items-end">
@@ -143,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dataSrc: 'data',
             error: function(xhr){
                 console.error('PO AJAX error:', xhr.responseText);
-                alert('Gagal memuat data Purchase Orders');
+                AppSwal.error('Gagal memuat data Purchase Orders');
             }
         },
         columns: [
@@ -221,11 +217,14 @@ document.addEventListener('DOMContentLoaded', function() {
         table.ajax.reload();
     });
 
-    $('#po_table').on('click', '.btn-delete', function(e){
+    $('#po_table').on('click', '.btn-delete', async function(e){
         e.preventDefault();
         const url = this.getAttribute('data-url');
         if (!url) return;
-        if (!confirm('Hapus PO ini?')) return;
+        const confirmed = await AppSwal.confirm('Hapus PO ini?', {
+            confirmButtonText: 'Hapus'
+        });
+        if (!confirmed) return;
         fetch(url, {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
@@ -234,9 +233,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (res.ok) {
                 table.ajax.reload(null, false);
             } else {
-                alert('Gagal menghapus PO');
+                AppSwal.error('Gagal menghapus PO');
             }
-        }).catch(() => alert('Gagal menghapus PO'));
+        }).catch(() => AppSwal.error('Gagal menghapus PO'));
     });
 
     // Hook topbar global search to this table (debounced)

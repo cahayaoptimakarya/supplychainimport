@@ -97,13 +97,16 @@
         refreshMenus();
         dt.on('draw', refreshMenus);
 
-        $('#users_table').on('click', '.btn-delete', function(e) {
+        $('#users_table').on('click', '.btn-delete', async function(e) {
             e.preventDefault();
             const url = this.getAttribute('data-url');
-            if (!confirm('Yakin ingin menghapus User ini?')) return;
+            const confirmed = await AppSwal.confirm('Yakin ingin menghapus User ini?', {
+                confirmButtonText: 'Hapus'
+            });
+            if (!confirmed) return;
             fetch(url, { method:'POST', headers:{ 'X-CSRF-TOKEN': csrfToken }, body: new URLSearchParams({ _method:'DELETE' }) })
-                .then(res => { if (res.ok) dt.ajax.reload(null, false); else alert('Gagal menghapus user'); })
-                .catch(()=> alert('Gagal menghapus user'));
+                .then(res => { if (res.ok) dt.ajax.reload(null, false); else AppSwal.error('Gagal menghapus user'); })
+                .catch(()=> AppSwal.error('Gagal menghapus user'));
         });
     });
 </script>

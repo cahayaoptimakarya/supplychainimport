@@ -29,10 +29,6 @@
 @section('content')
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="container-fluid" id="kt_content_container">
-        @if(session('success'))
-            <div class="alert alert-success my-5">{{ session('success') }}</div>
-        @endif
-
         <div class="card">
             <div class="card-header border-0 pt-6">
                 <ul class="nav nav-tabs nav-line-tabs mb-0 fs-6">
@@ -134,7 +130,7 @@
                 dataSrc: 'data',
                 error: function(xhr){
                     console.error('Suppliers AJAX error:', xhr.responseText);
-                    alert('Gagal memuat data supplier');
+                    AppSwal.error('Gagal memuat data supplier');
                 }
             },
             columns: [
@@ -174,7 +170,7 @@
                 dataSrc: 'data',
                 error: function(xhr){
                     console.error('SupplierCategories AJAX error:', xhr.responseText);
-                    alert('Gagal memuat data kategori supplier');
+                    AppSwal.error('Gagal memuat data kategori supplier');
                 }
             },
             columns: [
@@ -203,10 +199,13 @@
         catTable.on('draw', refreshMenus);
         refreshMenus();
 
-        $('#suppliers_table').on('click', '.btn-delete', function(e) {
+        $('#suppliers_table').on('click', '.btn-delete', async function(e) {
             e.preventDefault();
             const url = this.getAttribute('data-url');
-            if (!confirm('Yakin ingin menghapus supplier ini?')) return;
+            const confirmed = await AppSwal.confirm('Yakin ingin menghapus supplier ini?', {
+                confirmButtonText: 'Hapus'
+            });
+            if (!confirmed) return;
             fetch(url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
@@ -215,9 +214,9 @@
                 if (res.ok) {
                     $('#suppliers_table').DataTable().ajax.reload(null, false);
                 } else {
-                    alert('Gagal menghapus supplier');
+                    AppSwal.error('Gagal menghapus supplier');
                 }
-            }).catch(() => alert('Gagal menghapus supplier'));
+            }).catch(() => AppSwal.error('Gagal menghapus supplier'));
         });
 
         const globalInput = document.getElementById('global_search');
@@ -233,18 +232,21 @@
         }
 
         // Delete handlers
-        $('#supplier_categories_table').on('click', '.btn-delete-cat', function(e) {
+        $('#supplier_categories_table').on('click', '.btn-delete-cat', async function(e) {
             e.preventDefault();
             const url = this.getAttribute('data-url');
-            if (!confirm('Yakin ingin menghapus kategori supplier ini?')) return;
+            const confirmed = await AppSwal.confirm('Yakin ingin menghapus kategori supplier ini?', {
+                confirmButtonText: 'Hapus'
+            });
+            if (!confirmed) return;
             fetch(url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
                 body: new URLSearchParams({ _method: 'DELETE' })
             }).then(res => {
                 if (res.ok) catTable.ajax.reload(null, false);
-                else alert('Gagal menghapus kategori supplier');
-            }).catch(() => alert('Gagal menghapus kategori supplier'));
+                else AppSwal.error('Gagal menghapus kategori supplier');
+            }).catch(() => AppSwal.error('Gagal menghapus kategori supplier'));
         });
 
         // Toggle Create buttons per tab
@@ -346,9 +348,9 @@
                         errorEl.textContent = msg;
                         errorEl.classList.remove('d-none');
                     } else {
-                        alert('Gagal menyimpan kategori supplier');
+                        AppSwal.error('Gagal menyimpan kategori supplier');
                     }
-                }).catch(() => { submitBtn.disabled = false; alert('Gagal menyimpan kategori supplier'); });
+                }).catch(() => { submitBtn.disabled = false; AppSwal.error('Gagal menyimpan kategori supplier'); });
             });
         }
     });

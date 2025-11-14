@@ -104,8 +104,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const val = (input.value || '').toString();
             if (val === '') return;
             if (!/^\d+$/.test(val)){
-                if (window.Swal) { Swal.fire({icon:'error', title:'Qty harus bilangan bulat', text:'Tidak boleh menggunakan desimal.'}); }
-                else { alert('Qty harus bilangan bulat.'); }
+                AppSwal.error('Qty harus bilangan bulat.', { text: 'Tidak boleh menggunakan desimal.' });
                 input.value = (val.split(/[\.,]/)[0] || '').replace(/\D/g,'');
                 input.focus();
             }

@@ -79,6 +79,198 @@
     <script src="{{ asset('metronic/js/custom/modals/upgrade-plan.js') }}"></script>
     <script>
         (function(){
+            const fallbackAlert = (message, type = 'info') => {
+                const prefix = type === 'error'
+                    ? 'Terjadi kesalahan: '
+                    : type === 'success'
+                        ? 'Berhasil: '
+                        : '';
+                window.alert(prefix + message);
+            };
+
+            const getCustomClass = (type) => {
+                switch (type) {
+                    case 'danger':
+                    case 'error':
+                        return 'btn btn-danger';
+                    case 'success':
+                        return 'btn btn-success';
+                    case 'warning':
+                        return 'btn btn-warning';
+                    default:
+                        return 'btn btn-primary';
+                }
+            };
+
+            const ensureSwal = () => typeof window.Swal !== 'undefined';
+
+            window.AppSwal = {
+                error(message, options = {}) {
+                    if (!ensureSwal()) return fallbackAlert(message, 'error');
+                    const {
+                        title = 'Terjadi Kesalahan',
+                        confirmButtonText = 'Tutup',
+                        ...rest
+                    } = options;
+                    return Swal.fire({
+                        icon: 'error',
+                        title,
+                        text: message,
+                        confirmButtonText,
+                        buttonsStyling: false,
+                        customClass: { confirmButton: getCustomClass('error') },
+                        ...rest,
+                    });
+                },
+                success(message, options = {}) {
+                    if (!ensureSwal()) return fallbackAlert(message, 'success');
+                    const {
+                        title = 'Berhasil',
+                        confirmButtonText = 'OK',
+                        ...rest
+                    } = options;
+                    return Swal.fire({
+                        icon: 'success',
+                        title,
+                        text: message,
+                        confirmButtonText,
+                        buttonsStyling: false,
+                        customClass: { confirmButton: getCustomClass('success') },
+                        ...rest,
+                    });
+                },
+                info(message, options = {}) {
+                    if (!ensureSwal()) return fallbackAlert(message, 'info');
+                    const {
+                        title = 'Informasi',
+                        confirmButtonText = 'OK',
+                        ...rest
+                    } = options;
+                    return Swal.fire({
+                        icon: 'info',
+                        title,
+                        text: message,
+                        confirmButtonText,
+                        buttonsStyling: false,
+                        customClass: { confirmButton: getCustomClass('info') },
+                        ...rest,
+                    });
+                },
+                warning(message, options = {}) {
+                    if (!ensureSwal()) return fallbackAlert(message, 'warning');
+                    const {
+                        title = 'Perhatian',
+                        confirmButtonText = 'Mengerti',
+                        ...rest
+                    } = options;
+                    return Swal.fire({
+                        icon: 'warning',
+                        title,
+                        text: message,
+                        confirmButtonText,
+                        buttonsStyling: false,
+                        customClass: { confirmButton: getCustomClass('warning') },
+                        ...rest,
+                    });
+                },
+                confirm(message, options = {}) {
+                    if (!ensureSwal()) return Promise.resolve(window.confirm(message));
+                    const {
+                        title = 'Apakah Anda yakin?',
+                        icon = 'warning',
+                        confirmButtonText = 'Ya',
+                        cancelButtonText = 'Batal',
+                        confirmButtonType = 'danger',
+                        cancelButtonType = 'light',
+                        reverseButtons = true,
+                        ...rest
+                    } = options;
+
+                    const sanitizedOptions = { ...rest };
+                    ['input', 'inputValue', 'inputPlaceholder', 'inputAttributes'].forEach(key => {
+                        if (key in sanitizedOptions) delete sanitizedOptions[key];
+                    });
+
+                    const confirmClass = getCustomClass(confirmButtonType);
+                    const cancelClass = cancelButtonType === 'light' ? 'btn btn-light' : getCustomClass(cancelButtonType);
+
+                    return Swal.fire({
+                        title,
+                        text: message,
+                        icon,
+                        showCancelButton: true,
+                        confirmButtonText,
+                        cancelButtonText,
+                        reverseButtons,
+                        buttonsStyling: false,
+                        focusCancel: true,
+                        customClass: {
+                            confirmButton: confirmClass,
+                            cancelButton: cancelClass,
+                        },
+                        ...sanitizedOptions,
+                        input: undefined,
+                        inputValue: undefined,
+                        inputPlaceholder: undefined,
+                        inputAttributes: undefined,
+                    }).then(result => result.isConfirmed);
+                }
+            };
+        })();
+    </script>
+    @php
+        $flashMessages = array_filter([
+            'success' => session('success'),
+            'status' => session('status'),
+            'error' => session('error'),
+            'danger' => session('danger'),
+            'warning' => session('warning'),
+            'info' => session('info'),
+        ]);
+    @endphp
+    @if(!empty($flashMessages))
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            const flashes = @json($flashMessages);
+            Object.entries(flashes).forEach(([type, message]) => {
+                if (!message) return;
+                switch(type){
+                    case 'success':
+                    case 'status':
+                        AppSwal.success(message);
+                        break;
+                    case 'error':
+                    case 'danger':
+                        AppSwal.error(message);
+                        break;
+                    case 'warning':
+                        AppSwal.warning(message);
+                        break;
+                    case 'info':
+                    default:
+                        AppSwal.info(message);
+                        break;
+                }
+            });
+        });
+    </script>
+    @endif
+    @if ($errors->any())
+    @php
+        $errorMessages = $errors->all();
+        $errorListHtml = '<ul class="text-start mb-0">'.collect($errorMessages)->map(fn($msg)=>'<li>'.e($msg).'</li>')->implode('').'</ul>';
+    @endphp
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            AppSwal.error(@json($errorMessages[0] ?? 'Periksa kembali data Anda.'), {
+                title: 'Validasi Gagal',
+                html: @json($errorListHtml)
+            });
+        });
+    </script>
+    @endif
+    <script>
+        (function(){
             const initSelect2 = (context = document) => {
                 if (!window.jQuery || !jQuery.fn.select2) return;
                 jQuery('select', context)
@@ -91,7 +283,7 @@
                             || $el.data('placeholder')
                             || $el.attr('data-placeholder')
                             || $el.find('option[value=""]').text()
-                            || 'Silakan pilih';
+                            || '';
                         if (!$el.find('option[value=""]').length) {
                             $el.prepend('<option value="" disabled selected hidden></option>');
                         }

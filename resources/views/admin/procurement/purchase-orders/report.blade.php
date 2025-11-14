@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function () {
             dataSrc: 'data',
             error: function (xhr) {
                 console.error('Report AJAX error:', xhr.responseText);
-                alert('Gagal memuat data laporan.');
+                AppSwal.error('Gagal memuat data laporan.');
             }
         },
         columns: [

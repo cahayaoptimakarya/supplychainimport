@@ -16,13 +16,6 @@
 @section('content')
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="container-fluid" id="kt_content_container">
-        @if(session('success'))
-            <div class="alert alert-success my-5">{{ session('success') }}</div>
-        @endif
-        @error('permissions')
-            <div class="alert alert-danger my-5">{{ $message }}</div>
-        @enderror
-
         <div class="card">
             <div class="card-body py-6">
                 <form method="POST" action="{{ route('admin.masterdata.permissions.update', $role->id) }}" class="form">
@@ -75,4 +68,3 @@
     </div>
 </div>
 @endsection
-

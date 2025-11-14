@@ -22,10 +22,6 @@
 @section('content')
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="container-fluid" id="kt_content_container">
-        @if(session('success'))
-            <div class="alert alert-success my-5">{{ session('success') }}</div>
-        @endif
-
         <div class="card">
             <div class="card-body py-6">
                 <div class="table-responsive">
@@ -88,7 +84,7 @@
                 dataSrc: 'data',
                 error: function(xhr){
                     console.error('SupplierCategories AJAX error:', xhr.responseText);
-                    alert('Gagal memuat data kategori supplier');
+                    AppSwal.error('Gagal memuat data kategori supplier');
                 }
             },
             columns: [
@@ -114,10 +110,13 @@
         refreshMenus();
         table.on('draw', refreshMenus);
 
-        $('#supplier_categories_table').on('click', '.btn-delete', function(e) {
+        $('#supplier_categories_table').on('click', '.btn-delete', async function(e) {
             e.preventDefault();
             const url = this.getAttribute('data-url');
-            if (!confirm('Yakin ingin menghapus kategori supplier ini?')) return;
+            const confirmed = await AppSwal.confirm('Yakin ingin menghapus kategori supplier ini?', {
+                confirmButtonText: 'Hapus'
+            });
+            if (!confirmed) return;
             fetch(url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
@@ -126,9 +125,9 @@
                 if (res.ok) {
                     table.ajax.reload(null, false);
                 } else {
-                    alert('Gagal menghapus kategori supplier');
+                    AppSwal.error('Gagal menghapus kategori supplier');
                 }
-            }).catch(() => alert('Gagal menghapus kategori supplier'));
+            }).catch(() => AppSwal.error('Gagal menghapus kategori supplier'));
         });
 
         const globalInput = document.getElementById('global_search');

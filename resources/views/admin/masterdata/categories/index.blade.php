@@ -22,10 +22,6 @@
 @section('content')
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="container-fluid" id="kt_content_container">
-        @if(session('success'))
-            <div class="alert alert-success my-5">{{ session('success') }}</div>
-        @endif
-
         <div class="card">
             <div class="card-body py-6">
                 <div class="table-responsive">
@@ -88,7 +84,7 @@
                 dataSrc: 'data',
                 error: function(xhr){
                     console.error('Categories AJAX error:', xhr.responseText);
-                    alert('Gagal memuat data kategori');
+                    AppSwal.error('Gagal memuat data kategori');
                 }
             },
             columns: [
@@ -114,10 +110,13 @@
         refreshMenus();
         dt.on('draw', refreshMenus);
 
-        $('#categories_table').on('click', '.btn-delete', function(e) {
+        $('#categories_table').on('click', '.btn-delete', async function(e) {
             e.preventDefault();
             const url = this.getAttribute('data-url');
-            if (!confirm('Yakin ingin menghapus kategori ini?')) return;
+            const confirmed = await AppSwal.confirm('Yakin ingin menghapus kategori ini?', {
+                confirmButtonText: 'Hapus'
+            });
+            if (!confirmed) return;
             fetch(url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
@@ -126,9 +125,9 @@
                 if (res.ok) {
                     dt.ajax.reload(null, false);
                 } else {
-                    alert('Gagal menghapus kategori');
+                    AppSwal.error('Gagal menghapus kategori');
                 }
-            }).catch(() => alert('Gagal menghapus kategori'));
+            }).catch(() => AppSwal.error('Gagal menghapus kategori'));
         });
 
         const globalInput = document.getElementById('global_search');
