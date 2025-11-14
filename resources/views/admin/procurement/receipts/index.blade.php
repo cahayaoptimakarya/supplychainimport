@@ -10,6 +10,7 @@
 @if($canCreate)
 <a href="{{ route('admin.procurement.receipts.create') }}" class="btn btn-primary">Create Receipt</a>
 @endif
+<a href="{{ route('admin.procurement.reports.receipts') }}" class="btn btn-light-info">Laporan Receipt</a>
 @endsection
 
 @section('page_breadcrumbs')

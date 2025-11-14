@@ -10,6 +10,7 @@
 @if($canCreate)
 <a href="{{ route('admin.procurement.shipments.create') }}" class="btn btn-primary">Create Shipment</a>
 @endif
+<a href="{{ route('admin.procurement.reports.shipments') }}" class="btn btn-light-info">Laporan Shipment</a>
 @endsection
 
 @section('page_breadcrumbs')

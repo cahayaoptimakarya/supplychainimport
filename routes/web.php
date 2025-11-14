@@ -105,6 +105,10 @@ Route::middleware(['auth', 'verified', 'menu.permission'])->prefix('admin')->as(
         // Procurement reports
         Route::get('/reports/item-logistics', [ProcurementReportController::class, 'itemLogistics'])->name('reports.item-logistics');
         Route::get('/reports/item-logistics/data', [ProcurementReportController::class, 'itemLogisticsData'])->name('reports.item-logistics-data');
+        Route::get('/reports/shipments', [ProcurementReportController::class, 'shipmentsOverview'])->name('reports.shipments');
+        Route::get('/reports/shipments/data', [ProcurementReportController::class, 'shipmentsOverviewData'])->name('reports.shipments-data');
+        Route::get('/reports/warehouse-receipts', [ProcurementReportController::class, 'receiptsOverview'])->name('reports.receipts');
+        Route::get('/reports/warehouse-receipts/data', [ProcurementReportController::class, 'receiptsOverviewData'])->name('reports.receipts-data');
 
         // Shipments
         Route::get('/shipments/data', [\App\Http\Controllers\Admin\ShipmentController::class, 'data'])->name('shipments.data');
