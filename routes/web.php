@@ -116,6 +116,7 @@ Route::middleware(['auth', 'verified', 'menu.permission'])->prefix('admin')->as(
 
         // Warehouse Receipts (GRN)
         Route::get('/receipts/data', [\App\Http\Controllers\Admin\WarehouseReceiptController::class, 'data'])->name('receipts.data');
+        Route::get('/receipts/shipments/{shipment}/items', [\App\Http\Controllers\Admin\WarehouseReceiptController::class, 'shipmentItems'])->name('receipts.shipment-items');
         Route::resource('receipts', \App\Http\Controllers\Admin\WarehouseReceiptController::class)->except(['show'])->names('receipts');
     });
 });

@@ -27,10 +27,20 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label required">Shipment</label>
-                            <select id="shipment_id" name="shipment_id" class="form-select @error('shipment_id') is-invalid @enderror form-select-solid" required>
+                            <select id="shipment_id" name="shipment_id" class="form-select @error('shipment_id') is-invalid @enderror form-select-solid" required data-items-url="{{ route('admin.procurement.receipts.shipment-items', ['shipment' => '__SHIPMENT__'], false) }}">
                                 <option value="">- pilih shipment -</option>
                                 @foreach($shipments as $s)
-                                    <option value="{{ $s->id }}" @selected(old('shipment_id', $receipt->shipment_id)==$s->id)>#{{ $s->id }} {{ $s->container_no ? '(' . $s->container_no . ')' : '' }}</option>
+                                    @php
+                                        $itemsPayload = $s->items->map(function($it){
+                                            return [
+                                                'item_id' => $it->item_id,
+                                                'qty_expected' => $it->qty_expected,
+                                                'cnt_expected' => $it->cnt_expected,
+                                                'pcs_cnt' => $it->pcs_cnt,
+                                            ];
+                                        })->values();
+                                    @endphp
+                                    <option value="{{ $s->id }}" data-items='@json($itemsPayload)' @selected(old('shipment_id', $receipt->shipment_id)==$s->id)>#{{ $s->id }} {{ $s->container_no ? '(' . $s->container_no . ')' : '' }}</option>
                                 @endforeach
                             </select>
                             @error('shipment_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -112,45 +122,71 @@
 </template>
 
 <script>
-document.addEventListener('DOMContentLoaded', function(){
-    const tbody = document.querySelector('#items_table tbody');
-    const tpl = document.getElementById('tpl_item_row').innerHTML;
+$(function(){
+    const $tbody = $('#items_table tbody');
+    const tpl = $('#tpl_item_row').html();
     let idx = 0;
-    function attachIntegerGuard(input){
+
+    const attachIntegerGuard = ($input) => {
         const guard = function(){
-            const val = (input.value || '').toString();
-            if (val === '') return;
+            const val = String($(this).val() || '');
+            if (!val) return;
             if (!/^\d+$/.test(val)){
-                AppSwal.error('Qty harus bilangan bulat.', { text: 'Tidak boleh menggunakan desimal.' });
-                input.value = (val.split(/[\.,]/)[0] || '').replace(/\D/g,'');
-                input.focus();
+                if (window.AppSwal && typeof AppSwal.error === 'function') {
+                    AppSwal.error('Qty harus bilangan bulat.', { text: 'Tidak boleh menggunakan desimal.' });
+                }
+                const sanitized = (val.split(/[\.,]/)[0] || '').replace(/\D/g,'');
+                $(this).val(sanitized).trigger('focus');
             }
         };
-        input.addEventListener('input', guard);
-        input.addEventListener('blur', guard);
-    }
-    function addRow(data){
-        let html = tpl.replaceAll('__i__', idx++);
-        const tr = document.createElement('tr');
-        tr.innerHTML = html;
-        tbody.appendChild(tr);
-        attachIntegerGuard(tr.querySelector('input[name$="[qty_received]"]'));
-        if (data) {
-            tr.querySelector('input[type=hidden]').value = data.id || '';
-            tr.querySelector('select').value = data.item_id || '';
-            const qi = tr.querySelector('input[name$="[qty_received]"]');
-            qi.value = (data.qty_received !== undefined && data.qty_received !== null && data.qty_received !== '')
-                ? String(parseInt(data.qty_received, 10)) : '';
-            const pcsInput = tr.querySelector('input[name$="[pcs_cnt]"]');
-            if (pcsInput) pcsInput.value = data.pcs_cnt || '';
-            const cntInput = tr.querySelector('input[name$="[cnt_received]"]');
-            if (cntInput) cntInput.value = data.cnt_received || '';
-            const descInput = tr.querySelector('input[name$="[description]"]');
-            if (descInput) descInput.value = data.description || '';
+        $input.on('input blur', guard);
+    };
+
+    const applySelectValue = ($select, value) => {
+        const val = value ?? '';
+        $select.val(val).trigger('change');
+        if ($select.data('select2')) {
+            $select.trigger('change.select2');
+        } else {
+            setTimeout(() => {
+                if ($select.data('select2')) {
+                    $select.val(val).trigger('change.select2');
+                }
+            }, 0);
         }
-        tr.querySelector('.btn-del-item').addEventListener('click', ()=> tr.remove());
-    }
-    document.getElementById('btn_add_item').addEventListener('click', ()=> addRow());
+    };
+
+    const addRow = (data = null) => {
+        const html = tpl.replaceAll('__i__', idx++);
+        const $row = $(html);
+        $tbody.append($row);
+        attachIntegerGuard($row.find('input[name$="[qty_received]"]'));
+        if (data) {
+            $row.find('input[type=hidden]').val(data.id || '');
+            applySelectValue($row.find('select'), data.item_id || '');
+            $row.find('input[name$="[qty_received]"]').val(
+                data.qty_received !== undefined && data.qty_received !== null && data.qty_received !== ''
+                    ? parseInt(data.qty_received, 10)
+                    : ''
+            );
+            $row.find('input[name$="[pcs_cnt]"]').val(data.pcs_cnt || '');
+            $row.find('input[name$="[cnt_received]"]').val(data.cnt_received || '');
+            $row.find('input[name$="[description]"]').val(data.description || '');
+        }
+        $row.find('.btn-del-item').on('click', () => $row.remove());
+    };
+
+    const renderRows = (rows) => {
+        $tbody.empty();
+        idx = 0;
+        if (Array.isArray(rows) && rows.length) {
+            rows.forEach(addRow);
+        } else {
+            addRow();
+        }
+    };
+
+    $('#btn_add_item').on('click', () => addRow());
     @php
         $preset = $receipt->items->map(function($l){
             return [
@@ -164,7 +200,54 @@ document.addEventListener('DOMContentLoaded', function(){
         })->values();
     @endphp
     const preset = @json($preset);
-    if (preset.length) preset.forEach(addRow); else addRow();
+    renderRows(preset);
+
+    const $shipmentSelect = $('#shipment_id');
+    const itemsUrlTemplate = $shipmentSelect.data('items-url') || '';
+    let lastShipmentValue = $shipmentSelect.val() || null;
+
+    const parseFallbackItems = ($option) => {
+        if (!$option.length) return [];
+        const raw = $option.attr('data-items');
+        if (!raw) return [];
+        try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
+        }
+    };
+
+    const fetchShipmentItems = (shipmentId) => {
+        const fallback = () => parseFallbackItems($shipmentSelect.find(':selected'));
+        if (!shipmentId || !itemsUrlTemplate) {
+            return $.Deferred().resolve(fallback()).promise();
+        }
+        const url = itemsUrlTemplate.replace('__SHIPMENT__', shipmentId);
+        console.debug('[receipt-edit] fetching shipment items', url);
+        return $.ajax({
+            url,
+            method: 'GET',
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(
+            data => (data && Array.isArray(data.items) && data.items.length) ? data.items : fallback(),
+            () => fallback()
+        );
+    };
+
+    const populateFromShipment = () => {
+        const shipmentId = $shipmentSelect.val();
+        if (!shipmentId || shipmentId === lastShipmentValue) return;
+        fetchShipmentItems(shipmentId).then(items => {
+            if (Array.isArray(items) && items.length) {
+                renderRows(items);
+                lastShipmentValue = shipmentId;
+            }
+        });
+    };
+
+    $shipmentSelect.on('change', populateFromShipment);
 });
 </script>
 @push('styles')
@@ -191,8 +274,10 @@ document.addEventListener('DOMContentLoaded', function(){
 @endpush
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function(){
-        flatpickr('.js-fp-dt', { enableTime: true, dateFormat: 'Y-m-d H:i' });
+    $(function(){
+        if (typeof flatpickr === 'function') {
+            flatpickr('.js-fp-dt', { enableTime: true, dateFormat: 'Y-m-d H:i' });
+        }
     });
 </script>
 @endpush

@@ -27,20 +27,20 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label required">Shipment</label>
-                            <select id="shipment_id" name="shipment_id" class="form-select @error('shipment_id') is-invalid @enderror form-select-solid" required>
+                            <select id="shipment_id" name="shipment_id" class="form-select @error('shipment_id') is-invalid @enderror form-select-solid" required data-items-url="{{ route('admin.procurement.receipts.shipment-items', ['shipment' => '__SHIPMENT__'], false) }}">
                                 <option value="">- pilih shipment -</option>
                                 @foreach($shipments as $s)
                                     @php
-                                        $itemsJson = $s->items->map(function($it){
+                                        $itemsPayload = $s->items->map(function($it){
                                             return [
                                                 'item_id' => $it->item_id,
                                                 'qty_expected' => $it->qty_expected,
                                                 'cnt_expected' => $it->cnt_expected,
                                                 'pcs_cnt' => $it->pcs_cnt,
                                             ];
-                                        })->values()->toJson();
+                                        })->values();
                                     @endphp
-                                    <option value="{{ $s->id }}" data-items='{{ $itemsJson }}'>#{{ $s->id }} {{ $s->container_no ? '(' . $s->container_no . ')' : '' }}</option>
+                                    <option value="{{ $s->id }}" data-items='@json($itemsPayload)'>#{{ $s->id }} {{ $s->container_no ? '(' . $s->container_no . ')' : '' }}</option>
                                 @endforeach
                             </select>
                             @error('shipment_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -120,66 +120,6 @@
     </tr>
     </template>
 
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-    const tbody = document.querySelector('#items_table tbody');
-    const tpl = document.getElementById('tpl_item_row').innerHTML;
-    let idx = 0;
-    function attachIntegerGuard(input){
-        const guard = function(){
-            const val = (input.value || '').toString();
-            if (val === '') return;
-            if (!/^\d+$/.test(val)){
-                AppSwal.error('Qty harus bilangan bulat.', { text: 'Tidak boleh menggunakan desimal.' });
-                input.value = (val.split(/[\.,]/)[0] || '').replace(/\D/g,'');
-                input.focus();
-            }
-        };
-        input.addEventListener('input', guard);
-        input.addEventListener('blur', guard);
-    }
-    function addRow(data){
-        let html = tpl.replaceAll('__i__', idx++);
-        const tr = document.createElement('tr');
-        tr.innerHTML = html;
-        tbody.appendChild(tr);
-        attachIntegerGuard(tr.querySelector('input[name$="[qty_received]"]'));
-        if (data) {
-            tr.querySelector('select').value = data.item_id || '';
-            const qi = tr.querySelector('input[name$="[qty_received]"]');
-            qi.value = (data.qty_received !== undefined && data.qty_received !== null && data.qty_received !== '')
-                ? String(parseInt(data.qty_received, 10)) : '';
-            const pcsInput = tr.querySelector('input[name$="[pcs_cnt]"]');
-            if (pcsInput) pcsInput.value = data.pcs_cnt || '';
-            const cntInput = tr.querySelector('input[name$="[cnt_received]"]');
-            if (cntInput) cntInput.value = data.cnt_received || '';
-            const descInput = tr.querySelector('input[name$="[description]"]');
-            if (descInput) descInput.value = data.description || '';
-        }
-        tr.querySelector('.btn-del-item').addEventListener('click', ()=> tr.remove());
-    }
-    document.getElementById('btn_add_item').addEventListener('click', ()=> addRow());
-    function populateFromShipment(){
-        tbody.innerHTML=''; idx=0;
-        const sel = document.getElementById('shipment_id');
-        const opt = sel.options[sel.selectedIndex];
-        if (!opt || !opt.dataset.items) { addRow(); return; }
-        try {
-            const items = JSON.parse(opt.dataset.items);
-            if (Array.isArray(items) && items.length) {
-                items.forEach(it => addRow({
-                    item_id: it.item_id,
-                    qty_received: (it.qty_expected ?? 0),
-                    cnt_received: it.cnt_expected || 0,
-                    pcs_cnt: it.pcs_cnt || ''
-                }));
-            } else { addRow(); }
-        } catch(e) { addRow(); }
-    }
-    document.getElementById('shipment_id').addEventListener('change', populateFromShipment);
-    populateFromShipment();
-});
-</script>
 @push('styles')
 <style>
     #items_table {
@@ -204,9 +144,128 @@ document.addEventListener('DOMContentLoaded', function(){
 @endpush
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function(){
-        flatpickr('.js-fp-dt', { enableTime: true, dateFormat: 'Y-m-d H:i' });
+    $(function(){
+        if (typeof flatpickr === 'function') {
+            flatpickr('.js-fp-dt', { enableTime: true, dateFormat: 'Y-m-d H:i' });
+        }
     });
+</script>
+
+
+<script>
+$(function(){
+    const $tbody = $('#items_table tbody');
+    const tpl = $('#tpl_item_row').html();
+    let idx = 0;
+
+    const attachIntegerGuard = ($input) => {
+        const guard = function(){
+            const val = String($(this).val() || '');
+            if (!val) return;
+            if (!/^\d+$/.test(val)){
+                if (window.AppSwal && typeof AppSwal.error === 'function') {
+                    AppSwal.error('Qty harus bilangan bulat.', { text: 'Tidak boleh menggunakan desimal.' });
+                }
+                const sanitized = (val.split(/[\.,]/)[0] || '').replace(/\D/g,'');
+                $(this).val(sanitized).trigger('focus');
+            }
+        };
+        $input.on('input blur', guard);
+    };
+
+    const applySelectValue = ($select, value) => {
+        const val = value ?? '';
+        $select.val(val).trigger('change');
+        if ($select.data('select2')) {
+            $select.trigger('change.select2');
+        } else {
+            setTimeout(() => {
+                if ($select.data('select2')) {
+                    $select.val(val).trigger('change.select2');
+                }
+            }, 0);
+        }
+    };
+
+    const addRow = (data = null) => {
+        const html = tpl.replaceAll('__i__', idx++);
+        const $row = $(html);
+        $tbody.append($row);
+        attachIntegerGuard($row.find('input[name$="[qty_received]"]'));
+        if (data) {
+            applySelectValue($row.find('select'), data.item_id || '');
+            $row.find('input[name$="[qty_received]"]').val(
+                data.qty_received !== undefined && data.qty_received !== null && data.qty_received !== ''
+                    ? parseInt(data.qty_received, 10)
+                    : ''
+            );
+            $row.find('input[name$="[pcs_cnt]"]').val(data.pcs_cnt || '');
+            $row.find('input[name$="[cnt_received]"]').val(data.cnt_received || '');
+            $row.find('input[name$="[description]"]').val(data.description || '');
+        }
+        $row.find('.btn-del-item').on('click', () => $row.remove());
+    };
+
+    $('#btn_add_item').on('click', () => addRow());
+
+    const $shipmentSelect = $('#shipment_id');
+    const itemsUrlTemplate = $shipmentSelect.data('items-url') || '';
+
+    const parseFallbackItems = ($option) => {
+        if (!$option.length) return [];
+        const raw = $option.attr('data-items');
+        if (!raw) return [];
+        try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
+        }
+    };
+
+    const fetchShipmentItems = (shipmentId) => {
+        const fallback = () => parseFallbackItems($shipmentSelect.find(':selected'));
+        if (!shipmentId || !itemsUrlTemplate) {
+            return $.Deferred().resolve(fallback()).promise();
+        }
+        const url = itemsUrlTemplate.replace('__SHIPMENT__', shipmentId);
+        console.debug('[receipt] fetching shipment items', url);
+        return $.ajax({
+            url,
+            method: 'GET',
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(
+            data => (data && Array.isArray(data.items) && data.items.length) ? data.items : fallback(),
+            () => fallback()
+        );
+    };
+
+    const populateFromShipment = () => {
+        $tbody.empty();
+        idx = 0;
+        const shipmentId = $shipmentSelect.val();
+        if (!shipmentId) {
+            addRow();
+            return;
+        }
+        fetchShipmentItems(shipmentId).then(items => {
+            if (Array.isArray(items) && items.length) {
+                items.forEach(it => addRow({
+                    item_id: it.item_id,
+                    qty_received: it.qty_expected ?? 0,
+                    cnt_received: it.cnt_expected || 0,
+                    pcs_cnt: it.pcs_cnt || ''
+                }));
+            } else {
+                addRow();
+            }
+        });
+    };
+
+    $shipmentSelect.on('change', populateFromShipment);
+    populateFromShipment();
+});
 </script>
 @endpush
 @endsection

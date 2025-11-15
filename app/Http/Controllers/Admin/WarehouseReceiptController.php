@@ -120,8 +120,10 @@ class WarehouseReceiptController extends Controller
     public function create()
     {
         $warehouses = Warehouse::orderBy('name')->get();
-        // shipments available for receiving (any status, user decides)
-        $shipments = Shipment::with('items')->orderByDesc('id')->get();
+        $shipments = Shipment::with('items')
+            ->whereDoesntHave('receipts')
+            ->orderByDesc('id')
+            ->get();
         $code = 'WR-'.now()->format('ymd').'-'.strtoupper(Str::random(4));
         return view('admin.procurement.receipts.create', compact('warehouses', 'shipments', 'code'));
     }
@@ -183,7 +185,13 @@ class WarehouseReceiptController extends Controller
     public function edit(WarehouseReceipt $receipt)
     {
         $warehouses = Warehouse::orderBy('name')->get();
-        $shipments = Shipment::orderByDesc('id')->get();
+        $shipments = Shipment::with('items')
+            ->where(function ($q) use ($receipt) {
+                $q->whereDoesntHave('receipts')
+                  ->orWhere('id', $receipt->shipment_id);
+            })
+            ->orderByDesc('id')
+            ->get();
         $receipt->load('items');
         return view('admin.procurement.receipts.edit', compact('receipt','warehouses','shipments'));
     }
@@ -291,5 +299,30 @@ class WarehouseReceiptController extends Controller
             }
         });
         return redirect()->route('admin.procurement.receipts.index')->with('success', 'Penerimaan gudang berhasil dihapus');
+    }
+
+    public function shipmentItems(Shipment $shipment)
+    {
+        dd($shipment);
+        $items = $shipment->items()
+            ->with('item:id,sku,name')
+            ->get()
+            ->map(function ($row) {
+                $label = optional($row->item)->sku
+                    ? ($row->item->sku . ' - ' . $row->item->name)
+                    : optional($row->item)->name;
+                return [
+                    'item_id' => $row->item_id,
+                    'item_label' => $label,
+                    'qty_expected' => (float) $row->qty_expected,
+                    'cnt_expected' => $row->cnt_expected,
+                    'pcs_cnt' => $row->pcs_cnt,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'items' => $items,
+        ]);
     }
 }
