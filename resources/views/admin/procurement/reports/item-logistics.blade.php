@@ -35,12 +35,44 @@ $iconBelum = <<<'SVG'
     <path d="M10 15h4M8 19h8"></path>
 </svg>
 SVG;
+$iconPlanned = <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 4h18"></path>
+    <path d="M8 2v4M16 2v4"></path>
+    <rect x="3" y="5" width="18" height="17" rx="2"></rect>
+    <path d="M8 14h3M8 18h3M14 14h3"></path>
+</svg>
+SVG;
+$iconPort = <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 21h18"></path>
+    <path d="M5 21v-6l7-3 7 3v6"></path>
+    <path d="M9 21v-4a3 3 0 016 0v4"></path>
+    <path d="M12 3v6"></path>
+    <path d="M9 6h6"></path>
+</svg>
+SVG;
 $iconDijalan = <<<'SVG'
 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3 7h11v9H3z"></path>
     <path d="M14 10h4l3 3v3h-7z"></path>
     <circle cx="7" cy="18" r="2"></circle>
     <circle cx="17" cy="18" r="2"></circle>
+</svg>
+SVG;
+$iconDijalanLaut = <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 19c1.5 1 2.5 1 4 0s2.5-1 4 0 2.5 1 4 0 2.5-1 4 0"></path>
+    <path d="M4 15l4-8 5 5 4-4 3 7"></path>
+</svg>
+SVG;
+$iconDijalanDarat = <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 7h11v9H3z"></path>
+    <path d="M14 10h4l3 3v3h-7z"></path>
+    <circle cx="7" cy="18" r="2"></circle>
+    <circle cx="17" cy="18" r="2"></circle>
+    <path d="M5 14h3"></path>
 </svg>
 SVG;
 $iconSudah = <<<'SVG'
@@ -60,12 +92,36 @@ SVG;
                     'icon' => $iconBelum,
                 ],
                 [
-                    'key' => 'dijalan',
-                    'title' => 'Sedang Dijalan',
-                    'subtitle' => 'Qty di shipment yang sudah berangkat / transit',
+                    'key' => 'planned',
+                    'title' => 'Shipment Planned',
+                    'subtitle' => 'Qty di shipment berstatus planned',
+                    'badge' => 'badge-light-info',
+                    'icon_bg' => 'bg-light-info',
+                    'icon' => $iconPlanned,
+                ],
+                [
+                    'key' => 'dijalan_laut',
+                    'title' => 'Di Kapal / Perahu',
+                    'subtitle' => 'Qty sedang menyeberang laut',
                     'badge' => 'badge-light-warning',
                     'icon_bg' => 'bg-light-warning',
-                    'icon' => $iconDijalan,
+                    'icon' => $iconDijalanLaut,
+                ],
+                [
+                    'key' => 'pelabuhan',
+                    'title' => 'Di Pelabuhan',
+                    'subtitle' => 'Qty menunggu/di proses di pelabuhan',
+                    'badge' => 'badge-light-secondary',
+                    'icon_bg' => 'bg-light-secondary',
+                    'icon' => $iconPort,
+                ],
+                [
+                    'key' => 'dijalan_darat',
+                    'title' => 'Menuju Gudang',
+                    'subtitle' => 'Qty dikirim dari pelabuhan ke WH',
+                    'badge' => 'badge-light-warning',
+                    'icon_bg' => 'bg-light-warning',
+                    'icon' => $iconDijalanDarat,
                 ],
                 [
                     'key' => 'sudah',
@@ -202,7 +258,14 @@ SVG;
     .status-card--belum .status-card__hero {
         background: linear-gradient(135deg, #5B61FF, #89A8FF);
     }
-    .status-card--dijalan .status-card__hero {
+    .status-card--planned .status-card__hero {
+        background: linear-gradient(135deg, #80d0c7, #13547a);
+    }
+    .status-card--pelabuhan .status-card__hero {
+        background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+    }
+    .status-card--dijalan_laut .status-card__hero,
+    .status-card--dijalan_darat .status-card__hero {
         background: linear-gradient(135deg, #FFB347, #FFCC70);
     }
     .status-card--sudah .status-card__hero {
@@ -212,7 +275,16 @@ SVG;
         background: rgba(255,255,255,.3);
         color: #1d3cff;
     }
-    .status-card--dijalan .status-card__icon {
+    .status-card--planned .status-card__icon {
+        background: rgba(255,255,255,.3);
+        color: #0f766e;
+    }
+    .status-card--pelabuhan .status-card__icon {
+        background: rgba(255,255,255,.3);
+        color: #7c3aed;
+    }
+    .status-card--dijalan_laut .status-card__icon,
+    .status-card--dijalan_darat .status-card__icon {
         background: rgba(255,255,255,.3);
         color: #c2410c;
     }
@@ -236,16 +308,34 @@ document.addEventListener('DOMContentLoaded', function () {
     const nf = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 });
     const sectionMap = {
         belum: {
-            key: 'belum_proses',
+            key: 'belum_pengiriman',
             body: document.getElementById('body_belum'),
             count: document.getElementById('count_belum'),
             empty: 'Tidak ada item menunggu pengiriman'
         },
-        dijalan: {
-            key: 'sedang_dijalan',
-            body: document.getElementById('body_dijalan'),
-            count: document.getElementById('count_dijalan'),
-            empty: 'Tidak ada item di perjalanan'
+        planned: {
+            key: 'planned',
+            body: document.getElementById('body_planned'),
+            count: document.getElementById('count_planned'),
+            empty: 'Belum ada shipment planned'
+        },
+        pelabuhan: {
+            key: 'di_pelabuhan',
+            body: document.getElementById('body_pelabuhan'),
+            count: document.getElementById('count_pelabuhan'),
+            empty: 'Tidak ada item di pelabuhan'
+        },
+        dijalan_laut: {
+            key: 'dalam_perjalanan_laut',
+            body: document.getElementById('body_dijalan_laut'),
+            count: document.getElementById('count_dijalan_laut'),
+            empty: 'Tidak ada item di kapal/perahu'
+        },
+        dijalan_darat: {
+            key: 'dalam_perjalanan_darat',
+            body: document.getElementById('body_dijalan_darat'),
+            count: document.getElementById('count_dijalan_darat'),
+            empty: 'Tidak ada item menuju warehouse'
         },
         sudah: {
             key: 'sudah_diterima',
@@ -276,7 +366,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 const colorMap = {
                     belum: 'badge-light-primary',
-                    dijalan: 'badge-light-warning',
+                    planned: 'badge-light-info',
+                    pelabuhan: 'badge-light-secondary',
+                    dijalan_laut: 'badge-light-warning',
+                    dijalan_darat: 'badge-light-warning',
                     sudah: 'badge-light-success',
                 };
                 meta.body.innerHTML = list.map(row => {

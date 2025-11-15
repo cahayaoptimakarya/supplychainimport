@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Item;
 use App\Models\PoLine;
 use App\Models\ReceiptItem;
 use App\Models\ShipmentItem;
@@ -10,19 +11,22 @@ use Illuminate\Support\Facades\DB;
 
 class ItemLogisticsSnapshot
 {
-    public const CATEGORY_BELUM = 'belum_proses';
-    public const CATEGORY_DIJALAN = 'sedang_dijalan';
-    public const CATEGORY_SUDAH = 'sudah_diterima';
+    public const CATEGORY_PENDING = 'belum_pengiriman';
+    public const CATEGORY_PLANNED = 'planned';
+    public const CATEGORY_AT_PORT = 'di_pelabuhan';
+    public const CATEGORY_IN_TRANSIT_SEA = 'dalam_perjalanan_laut';
+    public const CATEGORY_IN_TRANSIT_LAND = 'dalam_perjalanan_darat';
+    public const CATEGORY_RECEIVED = 'sudah_diterima';
 
     private const SHIPMENT_CATEGORY_MAP = [
-        'planned' => self::CATEGORY_BELUM,
-        'ready_at_port' => self::CATEGORY_BELUM,
-        'on_board' => self::CATEGORY_DIJALAN,
-        'arrived' => self::CATEGORY_DIJALAN,
-        'under_bc' => self::CATEGORY_DIJALAN,
-        'released' => self::CATEGORY_DIJALAN,
-        'delivered_to_main_wh' => self::CATEGORY_DIJALAN,
-        'received' => self::CATEGORY_SUDAH,
+        'planned' => self::CATEGORY_PLANNED,
+        'ready_at_port' => self::CATEGORY_AT_PORT,
+        'arrived' => self::CATEGORY_AT_PORT,
+        'under_bc' => self::CATEGORY_AT_PORT,
+        'on_board' => self::CATEGORY_IN_TRANSIT_SEA,
+        'released' => self::CATEGORY_IN_TRANSIT_LAND,
+        'delivered_to_main_wh' => self::CATEGORY_IN_TRANSIT_LAND,
+        'received' => self::CATEGORY_RECEIVED,
     ];
 
     /**
@@ -31,47 +35,80 @@ class ItemLogisticsSnapshot
     public function build(): array
     {
         $poLines = PoLine::select('id', 'item_id', 'qty_ordered', 'qty_fulfilled')
-            ->with('item:id,sku,name')
             ->whereNotNull('item_id')
             ->whereHas('purchaseOrder')
             ->get();
+        $shipmentItemIds = ShipmentItem::query()
+            ->whereNotNull('item_id')
+            ->distinct()
+            ->pluck('item_id')
+            ->filter()
+            ->all();
+        $receiptItemIds = ReceiptItem::query()
+            ->whereNotNull('item_id')
+            ->distinct()
+            ->pluck('item_id')
+            ->filter()
+            ->all();
 
-        if ($poLines->isEmpty()) {
+        $itemIds = collect($poLines->pluck('item_id'))
+            ->merge($shipmentItemIds)
+            ->merge($receiptItemIds)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($itemIds)) {
             return [
-                self::CATEGORY_BELUM => [],
-                self::CATEGORY_DIJALAN => [],
-                self::CATEGORY_SUDAH => [],
+                self::CATEGORY_PENDING => [],
+                self::CATEGORY_PLANNED => [],
+                self::CATEGORY_IN_TRANSIT_SEA => [],
+                self::CATEGORY_IN_TRANSIT_LAND => [],
+                self::CATEGORY_AT_PORT => [],
+                self::CATEGORY_RECEIVED => [],
             ];
         }
 
-        $itemIds = $poLines->pluck('item_id')->unique()->filter()->values()->all();
+        $items = Item::whereIn('id', $itemIds)
+            ->get(['id', 'sku', 'name'])
+            ->keyBy('id');
+
         $shipmentBuckets = $this->buildShipmentBuckets($itemIds);
+        $receiptFallback = ReceiptItem::query()
+            ->selectRaw('item_id, SUM(qty_received) as qty_total')
+            ->whereIn('item_id', $itemIds)
+            ->groupBy('item_id')
+            ->pluck('qty_total', 'item_id')
+            ->map(fn ($qty) => (float) $qty);
 
         $aggregate = [];
 
-        foreach ($poLines as $line) {
-            $item = $line->item;
-            if (!$item) {
-                continue;
-            }
-
-            $itemId = (int) $line->item_id;
-            if (!isset($aggregate[$itemId])) {
+        foreach ($itemIds as $itemId) {
+            $item = $items->get($itemId);
                 $aggregate[$itemId] = [
                     'item_id' => $itemId,
-                    'sku' => $item->sku,
-                    'name' => $item->name,
-                    self::CATEGORY_BELUM => 0.0,
-                    self::CATEGORY_DIJALAN => 0.0,
-                    self::CATEGORY_SUDAH => 0.0,
+                    'sku' => $item?->sku,
+                    'name' => $item?->name,
+                    self::CATEGORY_PENDING => 0.0,
+                    self::CATEGORY_PLANNED => 0.0,
+                    self::CATEGORY_AT_PORT => 0.0,
+                    self::CATEGORY_IN_TRANSIT_SEA => 0.0,
+                    self::CATEGORY_IN_TRANSIT_LAND => 0.0,
+                    self::CATEGORY_RECEIVED => 0.0,
                 ];
             }
 
+        foreach ($poLines as $line) {
+            $itemId = (int) $line->item_id;
+            if (!isset($aggregate[$itemId])) {
+                continue;
+            }
             $entry =& $aggregate[$itemId];
 
             $fulfilled = (float) ($line->qty_fulfilled ?? 0);
             if ($fulfilled > 0) {
-                $entry[self::CATEGORY_SUDAH] += $fulfilled;
+                $entry[self::CATEGORY_RECEIVED] += $fulfilled;
             }
 
             $remaining = max(0.0, (float) $line->qty_ordered - $fulfilled);
@@ -99,14 +136,41 @@ class ItemLogisticsSnapshot
             }
 
             if ($remaining > 0) {
-                $entry[self::CATEGORY_BELUM] += $remaining;
+                $entry[self::CATEGORY_PENDING] += $remaining;
+            }
+        }
+
+        foreach ($shipmentBuckets as $itemId => $shipments) {
+            if (!isset($aggregate[$itemId])) {
+                continue;
+            }
+            foreach ($shipments as $shipment) {
+                $available = (float) ($shipment['available'] ?? 0);
+                if ($available <= 0) {
+                    continue;
+                }
+                $category = $shipment['category'] ?? self::CATEGORY_IN_TRANSIT_SEA;
+                $aggregate[$itemId][$category] = ($aggregate[$itemId][$category] ?? 0) + $available;
+            }
+        }
+
+        foreach ($receiptFallback as $itemId => $qty) {
+            if (!isset($aggregate[$itemId])) {
+                continue;
+            }
+            $hasPo = $poLines->contains(fn ($line) => (int) $line->item_id === (int) $itemId);
+            if (!$hasPo) {
+                $aggregate[$itemId][self::CATEGORY_RECEIVED] += (float) $qty;
             }
         }
 
         return [
-            self::CATEGORY_BELUM => $this->formatList($aggregate, self::CATEGORY_BELUM),
-            self::CATEGORY_DIJALAN => $this->formatList($aggregate, self::CATEGORY_DIJALAN),
-            self::CATEGORY_SUDAH => $this->formatList($aggregate, self::CATEGORY_SUDAH),
+            self::CATEGORY_PENDING => $this->formatList($aggregate, self::CATEGORY_PENDING),
+            self::CATEGORY_PLANNED => $this->formatList($aggregate, self::CATEGORY_PLANNED),
+            self::CATEGORY_AT_PORT => $this->formatList($aggregate, self::CATEGORY_AT_PORT),
+            self::CATEGORY_IN_TRANSIT_SEA => $this->formatList($aggregate, self::CATEGORY_IN_TRANSIT_SEA),
+            self::CATEGORY_IN_TRANSIT_LAND => $this->formatList($aggregate, self::CATEGORY_IN_TRANSIT_LAND),
+            self::CATEGORY_RECEIVED => $this->formatList($aggregate, self::CATEGORY_RECEIVED),
         ];
     }
 
@@ -172,7 +236,7 @@ class ItemLogisticsSnapshot
 
         foreach ($shipments as $shipment) {
             $category = $this->mapStatusToCategory($shipment->shipment_status);
-            if ($category === self::CATEGORY_SUDAH) {
+            if ($category === self::CATEGORY_RECEIVED) {
                 // Received shipments should already be reflected in fulfillment metrics.
                 continue;
             }
@@ -197,9 +261,9 @@ class ItemLogisticsSnapshot
     private function mapStatusToCategory(?string $status): string
     {
         if (!$status) {
-            return self::CATEGORY_BELUM;
+            return self::CATEGORY_PENDING;
         }
 
-        return self::SHIPMENT_CATEGORY_MAP[$status] ?? self::CATEGORY_BELUM;
+        return self::SHIPMENT_CATEGORY_MAP[$status] ?? self::CATEGORY_PENDING;
     }
 }
