@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ItemController extends Controller
 {
@@ -105,7 +106,8 @@ class ItemController extends Controller
             return $this->importResponse($request, 0, [], [['row' => 0, 'error' => 'Tidak dapat membaca file']]);
         }
 
-        $headers = fgetcsv($handle);
+        $delimiter = $this->detectCsvDelimiter($handle);
+        $headers = fgetcsv($handle, 0, $delimiter);
         if (!$headers) {
             fclose($handle);
             return $this->importResponse($request, 0, [], [['row' => 0, 'error' => 'Header CSV tidak ditemukan']]);
@@ -113,6 +115,9 @@ class ItemController extends Controller
 
         $map = [];
         foreach ($headers as $i => $h) {
+            if ($i === 0) {
+                $h = ltrim($h, "\xEF\xBB\xBF"); // handle UTF-8 BOM
+            }
             $key = strtolower(trim($h));
             $map[$i] = $key;
         }
@@ -136,7 +141,7 @@ class ItemController extends Controller
         $rowsToInsert = [];
         $errors = [];
         $rownum = 1; // counting header as row 1
-        while (($row = fgetcsv($handle)) !== false) {
+        while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rownum++;
             if (count(array_filter($row, fn($v)=> trim((string)$v) !== '')) === 0) continue; // skip empty row
             $data = $normalize($row);
@@ -144,6 +149,9 @@ class ItemController extends Controller
             $name = $resolve($data, 'name', ['name','nama']);
             $sku  = $resolve($data, 'sku', ['sku','kode','kode_sku']);
             $cnt  = $resolve($data, 'cnt', ['cnt']);
+            if ($cnt === null || trim($cnt) === '' || trim($cnt) === '0') {
+                $cnt = '1';
+            }
             $cat  = $resolve($data, 'category', ['category','kategori','category_name']);
             $uom  = $resolve($data, 'uom', ['uom','uom_name']);
             $desc = $resolve($data, 'description', ['description','deskripsi','keterangan']);
@@ -151,19 +159,28 @@ class ItemController extends Controller
             $rowErr = [];
             if (!$name) $rowErr[] = 'name wajib';
             if (!$sku) $rowErr[] = 'sku wajib';
-            if (!$cnt) $rowErr[] = 'cnt wajib';
             if (!$cat) $rowErr[] = 'category wajib';
             // UOM opsional: default ke ID 1 jika kosong
 
             if ($rowErr) { $errors[] = ['row' => $rownum, 'error' => implode('; ', $rowErr)]; continue; }
 
-            $category = Category::where('name', $cat)->first();
-            if (!$category) { $errors[] = ['row' => $rownum, 'error' => "Kategori '$cat' tidak ditemukan"]; continue; }
+            $category = Category::firstOrCreate(
+                ['slug' => Str::slug($cat)],
+                ['name' => $cat]
+            );
             // Resolve UOM: jika ada di CSV tapi belum ada -> buat baru; jika kosong -> pakai default ID 1
             if ($uom) {
-                $uomModel = Uom::where('name', $uom)->first();
+                $normalizedUom = Str::lower($uom);
+                $uomModel = Uom::where(function ($query) use ($normalizedUom) {
+                    $query->whereRaw('LOWER(name) = ?', [$normalizedUom])
+                          ->orWhereRaw('LOWER(symbol) = ?', [$normalizedUom]);
+                })->first();
+
                 if (!$uomModel) {
-                    $uomModel = Uom::create(['name' => $uom]);
+                    $uomModel = Uom::create([
+                        'name' => $uom,
+                        'symbol' => $uom,
+                    ]);
                 }
             } else {
                 $uomModel = Uom::find(1);
@@ -195,6 +212,30 @@ class ItemController extends Controller
         }
 
         return $this->importResponse($request, $inserted, $rowsToInsert, $errors);
+    }
+
+    protected function detectCsvDelimiter($handle): string
+    {
+        $candidates = [',', ';', "\t", '|'];
+        rewind($handle);
+        $line = fgets($handle);
+        if ($line === false) {
+            rewind($handle);
+            return ',';
+        }
+        $line = ltrim($line, "\xEF\xBB\xBF"); // strip BOM before counting
+
+        $bestDelimiter = ',';
+        $highestCount = 0;
+        foreach ($candidates as $delimiter) {
+            $count = substr_count($line, $delimiter);
+            if ($count > $highestCount) {
+                $highestCount = $count;
+                $bestDelimiter = $delimiter;
+            }
+        }
+        rewind($handle);
+        return $bestDelimiter;
     }
 
     protected function importResponse(Request $request, int $inserted, array $rows, array $errors)

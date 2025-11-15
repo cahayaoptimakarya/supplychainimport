@@ -491,15 +491,15 @@
                 <ul class="mb-0">
                     <li><code>sku</code> — wajib, unik</li>
                     <li><code>name</code> / <code>nama</code> — wajib</li>
-                    <li><code>category</code> / <code>kategori</code> — wajib (nama kategori harus sudah ada)</li>
-                    <li><code>cnt</code> — wajib</li>
-                    <li><code>uom</code> — opsional; jika kosong akan menggunakan UOM default (ID 1). Jika diisi dan belum ada, UOM akan dibuat otomatis.</li>
+                    <li><code>category</code> / <code>kategori</code> — wajib; bila belum ada akan otomatis dibuat dengan nama tersebut.</li>
+                    <li><code>cnt</code> — opsional; jika kosong atau bernilai <code>0</code> akan otomatis diisi <code>1</code></li>
+                    <li><code>uom</code> — opsional; jika kosong akan menggunakan UOM default (ID 1). Jika diisi, sistem akan mencari berdasarkan nama atau simbol (case-insensitive) dan membuat baru bila tidak ditemukan.</li>
                     <li><code>description</code> — opsional</li>
                 </ul>
                 <div class="mt-3">Header alternatif yang didukung:</div>
                 <ul class="mb-0">
                     <li>category: <code>category</code> | <code>kategori</code> | <code>category_name</code></li>
-                    <li>uom: <code>uom</code> | <code>uom_name</code></li>
+                    <li>uom: <code>uom</code> | <code>uom_name</code> — nilai boleh nama atau simbol</li>
                     <li>cnt: <code>cnt</code></li>
                     <li>name: <code>name</code> | <code>nama</code></li>
                     <li>description: <code>description</code> | <code>deskripsi</code> | <code>keterangan</code></li>
