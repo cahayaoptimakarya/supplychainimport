@@ -27,7 +27,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label required">Tanggal</label>
-                            <input type="text" name="order_date" value="{{ old('order_date', now()->toDateString()) }}" class="form-control js-fp-date @error('order_date') is-invalid @enderror form-control-solid" required />
+                            <input type="text" id="order_date" name="order_date" value="{{ old('order_date', now()->toDateString()) }}" class="form-control js-fp-date @error('order_date') is-invalid @enderror form-control-solid" required />
                             @error('order_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-4">
@@ -136,7 +136,6 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 <style>
     #lines_table {
         table-layout: fixed;
@@ -167,11 +166,8 @@ document.addEventListener('DOMContentLoaded', function(){
 </style>
 @endpush
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function(){
-        flatpickr('.js-fp-date', { dateFormat: 'Y-m-d' });
-    });
+    $('#order_date').flatpickr()
 </script>
 @endpush
 @endsection

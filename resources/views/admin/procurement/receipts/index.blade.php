@@ -213,7 +213,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 <style>
     .cell-number {
         text-align: right !important;
@@ -222,7 +221,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </style>
 @endpush
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
     flatpickr('.js-fp-date', { dateFormat: 'Y-m-d' });

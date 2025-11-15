@@ -7,9 +7,8 @@
     <title>@yield('title', 'Import Analytics')</title>
     <link rel="shortcut icon" href="{{ asset('metronic/media/logos/logo-demo3.png') }}" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
-    <link href="{{ asset('metronic/plugins/custom/fullcalendar/fullcalendar.bundle.css') }}" rel="stylesheet" type="text/css" />
-    <link href="{{ asset('metronic/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('metronic/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('metronic/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
     <style>
         .select2-container .select2-selection--single {
             height: 42px;
@@ -33,6 +32,7 @@
             border-radius: 0.475rem;
             border: 1px solid #e4e6ef;
         }
+       
     </style>
     @stack('styles')
     @yield('styles')
@@ -72,11 +72,6 @@
 
     <script src="{{ asset('metronic/plugins/global/plugins.bundle.js') }}"></script>
     <script src="{{ asset('metronic/js/scripts.bundle.js') }}"></script>
-    <script src="{{ asset('metronic/plugins/custom/fullcalendar/fullcalendar.bundle.js') }}"></script>
-    <script src="{{ asset('metronic/js/custom/widgets.js') }}"></script>
-    <script src="{{ asset('metronic/js/custom/apps/chat/chat.js') }}"></script>
-    <script src="{{ asset('metronic/js/custom/modals/create-app.js') }}"></script>
-    <script src="{{ asset('metronic/js/custom/modals/upgrade-plan.js') }}"></script>
     <script>
         (function(){
             const fallbackAlert = (message, type = 'info') => {
@@ -278,6 +273,7 @@
                     .each(function(){
                         const $el = jQuery(this);
                         if ($el.data('select2')) return;
+                        if ($el.closest('.flatpickr-calendar').length) return;
                         const dropdownParent = $el.closest('.modal');
                         const placeholder = $el.attr('placeholder')
                             || $el.data('placeholder')

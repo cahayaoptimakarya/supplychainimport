@@ -124,12 +124,10 @@
     }
 </style>
 <link href="{{ asset('metronic/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 @endpush
 
 @push('scripts')
 <script src="{{ asset('metronic/plugins/custom/datatables/datatables.bundle.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     flatpickr('.js-fp-date', { dateFormat: 'Y-m-d' });
