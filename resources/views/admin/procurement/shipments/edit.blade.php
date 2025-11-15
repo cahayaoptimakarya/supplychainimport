@@ -92,13 +92,13 @@
             </select>
         </td>
         <td>
-            <input type="number" step="1" min="1" name="items[__i__][qty_expected]" class="form-control form-control-solid" required />
+            <input type="number" step="1" min="1" name="items[__i__][qty_expected]" class="form-control form-control-solid text-end" required />
         </td>
         <td>
             <input type="text" name="items[__i__][pcs_cnt]" class="form-control form-control-solid" placeholder="mis. 10 pcs / 1 cnt" />
         </td>
         <td>
-            <input type="number" step="0.0001" min="0" name="items[__i__][cnt_expected]" class="form-control form-control-solid" />
+            <input type="number" step="0.0001" min="0" name="items[__i__][cnt_expected]" class="form-control form-control-solid text-end" />
         </td>
         <td>
             <input type="text" name="items[__i__][description]" class="form-control form-control-solid" placeholder="Deskripsi item (opsional)" />
@@ -142,7 +142,11 @@ document.addEventListener('DOMContentLoaded', function(){
             const pcsInput = tr.querySelector('input[name$="[pcs_cnt]"]');
             if (pcsInput) pcsInput.value = data.pcs_cnt || '';
             const cntInput = tr.querySelector('input[name$="[cnt_expected]"]');
-            if (cntInput) cntInput.value = data.cnt_expected || '';
+            if (cntInput) {
+                cntInput.value = (data.cnt_expected !== undefined && data.cnt_expected !== null && data.cnt_expected !== '')
+                    ? Number(data.cnt_expected).toFixed(2)
+                    : '';
+            }
             const descInput = tr.querySelector('input[name$="[description]"]');
             if (descInput) descInput.value = data.description || '';
         }

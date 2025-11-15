@@ -104,13 +104,13 @@
             </select>
         </td>
         <td>
-            <input type="number" step="1" min="0" name="items[__i__][qty_received]" class="form-control form-control-solid" required />
+            <input type="number" step="1" min="0" name="items[__i__][qty_received]" class="form-control form-control-solid text-end" required />
         </td>
         <td>
             <input type="text" name="items[__i__][pcs_cnt]" class="form-control form-control-solid" placeholder="mis. 10 pcs / 1 cnt" />
         </td>
         <td>
-            <input type="number" step="0.0001" min="0" name="items[__i__][cnt_received]" class="form-control form-control-solid" />
+            <input type="number" step="0.0001" min="0" name="items[__i__][cnt_received]" class="form-control form-control-solid text-end" />
         </td>
         <td>
             <input type="text" name="items[__i__][description]" class="form-control form-control-solid" placeholder="Deskripsi item (opsional)" />
@@ -121,7 +121,45 @@
     </tr>
 </template>
 
+@push('styles')
+<style>
+    #items_table {
+        table-layout: fixed;
+        width: 100%;
+    }
+    #items_table th:first-child,
+    #items_table td:first-child {
+        width: 260px;
+        min-width: 260px;
+    }
+    #items_table th:nth-child(2),
+    #items_table td:nth-child(2),
+    #items_table th:nth-child(3),
+    #items_table td:nth-child(3),
+    #items_table th:nth-child(4),
+    #items_table td:nth-child(4) {
+        width: 150px;
+        min-width: 150px;
+    }
+</style>
+@endpush
+@push('scripts')
 <script>
+(function($){
+    if (!$) return;
+    $(function(){
+        if (typeof flatpickr === 'function') {
+            flatpickr('.js-fp-dt', { enableTime: true, dateFormat: 'Y-m-d H:i' });
+        }
+    });
+})(window.jQuery);
+</script>
+<script>
+(function($){
+if (!$) {
+    console.warn('jQuery tidak tersedia untuk halaman receipt edit.');
+    return;
+}
 $(function(){
     const $tbody = $('#items_table tbody');
     const tpl = $('#tpl_item_row').html();
@@ -170,7 +208,10 @@ $(function(){
                     : ''
             );
             $row.find('input[name$="[pcs_cnt]"]').val(data.pcs_cnt || '');
-            $row.find('input[name$="[cnt_received]"]').val(data.cnt_received || '');
+            const cntValue = data.cnt_received !== undefined && data.cnt_received !== null && data.cnt_received !== ''
+                ? Number(data.cnt_received).toFixed(2)
+                : '';
+            $row.find('input[name$="[cnt_received]"]').val(cntValue);
             $row.find('input[name$="[description]"]').val(data.description || '');
         }
         $row.find('.btn-del-item').on('click', () => $row.remove());
@@ -249,36 +290,7 @@ $(function(){
 
     $shipmentSelect.on('change', populateFromShipment);
 });
-</script>
-@push('styles')
-<style>
-    #items_table {
-        table-layout: fixed;
-        width: 100%;
-    }
-    #items_table th:first-child,
-    #items_table td:first-child {
-        width: 260px;
-        min-width: 260px;
-    }
-    #items_table th:nth-child(2),
-    #items_table td:nth-child(2),
-    #items_table th:nth-child(3),
-    #items_table td:nth-child(3),
-    #items_table th:nth-child(4),
-    #items_table td:nth-child(4) {
-        width: 150px;
-        min-width: 150px;
-    }
-</style>
-@endpush
-@push('scripts')
-<script>
-    $(function(){
-        if (typeof flatpickr === 'function') {
-            flatpickr('.js-fp-dt', { enableTime: true, dateFormat: 'Y-m-d H:i' });
-        }
-    });
+})(window.jQuery);
 </script>
 @endpush
 @endsection

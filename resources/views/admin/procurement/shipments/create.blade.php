@@ -91,13 +91,13 @@
             </select>
         </td>
         <td>
-            <input type="number" step="1" min="1" name="items[__i__][qty_expected]" class="form-control form-control-solid" required />
+            <input type="number" step="1" min="1" name="items[__i__][qty_expected]" class="form-control form-control-solid text-end" required />
         </td>
         <td>
             <input type="text" name="items[__i__][pcs_cnt]" class="form-control form-control-solid" placeholder="mis. 10 pcs / 1 cnt" />
         </td>
         <td>
-            <input type="number" step="0.0001" min="0" name="items[__i__][cnt_expected]" class="form-control form-control-solid" />
+            <input type="number" step="0.0001" min="0" name="items[__i__][cnt_expected]" class="form-control form-control-solid text-end" />
         </td>
         <td>
             <input type="text" name="items[__i__][description]" class="form-control form-control-solid" placeholder="Deskripsi item (opsional)" />
